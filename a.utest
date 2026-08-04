@@ -1,0 +1,65 @@
+core {
+    test "health check" {
+        request GET "/health"
+
+        expect {
+            status = 200
+
+            body {
+                status: string = "OK"
+            }
+        }
+    }
+}
+
+pipeline "authenticated data flow" {
+    test "login" {
+        request POST "/login" {
+            body {
+                email = "${TEST_USER_EMAIL}"
+                password = "${TEST_USER_PASSWORD}"
+            }
+        }
+
+        expect {
+            status = 200
+
+            body {
+                refresh_token: string
+                access_token: string -> ACCESS_TOKEN
+            }
+        }
+    }
+
+    test "view data" {
+        request GET "/data" {
+            headers {
+                "Authorization" = "Bearer ${ACCESS_TOKEN}"
+            }
+        }
+
+        expect {
+            status = 200
+
+            body {
+                data: object {
+                    result: string
+                }
+
+                success: boolean = true
+            }
+        }
+    }
+}
+
+test "reject request without access token" {
+    request GET "/data"
+
+    expect {
+        status = 401
+
+        body {
+            success: boolean = false
+        }
+    }
+}
