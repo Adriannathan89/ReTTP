@@ -6,12 +6,7 @@ use crate::{
     Value,
 };
 
-/*
- * HTTP methods for request specification.
- * Abstracts the HTTP method to allow for easy serialization and deserialization.
- * Used in the request specification to define the method of the HTTP request.
- */
-
+/// HTTP methods supported by the portable request model.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum HttpMethod {
     GET,
@@ -24,6 +19,8 @@ pub enum HttpMethod {
 }
 
 impl HttpMethod {
+    /// Returns the conventional uppercase HTTP method token.
+    /// Returns whether this model permits a request body for the method.
     #[must_use]
     pub const fn as_str(&self) -> &'static str {
         match self {
@@ -37,12 +34,19 @@ impl HttpMethod {
         }
     }
 
+    /// Adds or replaces a request header.
     #[must_use]
     pub const fn allows_body(&self) -> bool {
         matches!(self, Self::POST | Self::PUT | Self::PATCH)
     }
 }
 
+/// A complete, transport-independent description of one HTTP request.
+///
+/// Backend adapters are responsible for resolving interpolation, encoding the
+/// selected [`RequestBody`], applying timeout behavior, and sending this
+/// specification through their native HTTP stack. `IndexMap` preserves the
+/// declaration order when a suite is serialized or displayed.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct HttpRequestSpec {
     pub method: HttpMethod,
@@ -53,12 +57,9 @@ pub struct HttpRequestSpec {
     pub timeout_ms: Option<u64>,
 }
 
-/*
- * HTTP request specification for defining the details of an HTTP request.
- * Includes the HTTP method, path, headers, query parameters, body, and timeout.
- * Used in the request specification to define the details of the HTTP request.
- */
 impl HttpRequestSpec {
+    /// Creates a request with empty headers/query parameters and no body or timeout.
+    /// Adds or replaces a query parameter.
     #[must_use]
     pub fn new(method: HttpMethod, path: impl Into<InterpolatedString>) -> Self {
         Self {
@@ -71,6 +72,7 @@ impl HttpRequestSpec {
         }
     }
 
+    /// Sets the request body.
     #[must_use]
     pub fn with_header(
         mut self, name: impl Into<String>, 
@@ -101,6 +103,9 @@ impl HttpRequestSpec {
 
 }
 
+/// Encoded content to be sent with an HTTP request.
+///
+/// The executor chooses the concrete wire encoding and corresponding headers.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum RequestBody {
     Json(Value),

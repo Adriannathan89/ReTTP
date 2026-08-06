@@ -1,11 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-/*
- * Abstraction Representation for a test suite block, which can be either a core test or a pipeline.
- * Represents the structure of a test suite block, including its name and the type of block it is (core or pipeline).
- * Used for serialization and deserialization of test suite blocks in the context of a testing framework.
- */
-
+/// Final state assigned by an executor to a test or aggregate block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ExecutionStatus {
     Passed,
@@ -14,6 +9,7 @@ pub enum ExecutionStatus {
     Aborted,
 }
 
+/// The recorded outcome of one [`TestCase`](crate::TestCase) execution.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TestResult {
     pub name: String,
@@ -23,12 +19,9 @@ pub struct TestResult {
     pub error: Option<ExecutionErrorInfo>,
 }
 
-/*
- * Test Result constructors for different execution statuses (passed, skipped, failed, aborted).
- * Each constructor initializes a TestResult instance with the appropriate status, duration, failures, and error information.
- * These constructors provide a convenient way to create TestResult instances based on the outcome of test
- */
 impl TestResult {
+    /// Creates a successful result with no failures or execution error.
+    /// Creates a skipped result whose reason is a failed dependency.
     #[must_use]
     pub fn passed(name: impl Into<String>, duration_ms: u64) -> Self {
         Self {
@@ -40,6 +33,7 @@ impl TestResult {
         }
     }
 
+    /// Creates a failed result with assertion failures and an optional execution error.
     #[must_use]
     pub fn skipped(
         name: impl Into<String>, 
@@ -57,6 +51,7 @@ impl TestResult {
         }
     }
     
+    /// Creates an aborted result caused by an internal runner failure.
     #[must_use]
     pub fn failed(
         name: impl Into<String>,
@@ -92,12 +87,14 @@ impl TestResult {
 }
 
 
+/// Aggregate outcome for a core block.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CoreResult {
     pub status: ExecutionStatus,
     pub tests: Vec<TestResult>,
 }
 
+/// Aggregate outcome for a named pipeline block.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PipelineResult {
     pub name: String,
@@ -105,6 +102,7 @@ pub struct PipelineResult {
     pub cores: Vec<CoreResult>,
 }
 
+/// Outcome for any [`SuiteBlock`](crate::SuiteBlock) shape.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BlockResult {
     Core(CoreResult),
@@ -112,6 +110,7 @@ pub enum BlockResult {
     Test(TestResult),
 }
 
+/// A machine-readable explanation of one failed response assertion.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AssertionFailure {
     pub path: String,
@@ -121,6 +120,7 @@ pub struct AssertionFailure {
     pub message: String,
 }
 
+/// Category of response assertion failure.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum AssertionFailureKind {
     MissingField,
@@ -132,12 +132,14 @@ pub enum AssertionFailureKind {
     InvalidBody,
 }
 
+/// Details of an error that prevented normal test execution.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExecutionErrorInfo {
     pub kind: ExecutionErrorKind,
     pub message: String,
 }
 
+/// Category of execution error reported by a backend adapter.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ExecutionErrorKind {
     Connection,

@@ -1,10 +1,9 @@
 use thiserror::Error;
 
-/*
- * Domain errors for handling various error conditions in the application.
- * Abstracts common error scenarios into a single enum for easier error handling and reporting.
- */
-
+/// Validation errors returned while constructing domain values.
+///
+/// Parsers and suite authoring APIs can map these stable, backend-neutral errors
+/// to their own diagnostics without depending on an HTTP implementation.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum DomainError {
     #[error("variable name cannot be empty")]
