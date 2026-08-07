@@ -1,7 +1,7 @@
 use std::fmt;
 
-use serde::{Deserialize, Serialize};
 use crate::DomainError;
+use serde::{Deserialize, Serialize};
 
 /// A validated identifier for a value shared between test cases.
 ///
@@ -27,17 +27,11 @@ impl VariableName {
             .expect("a non-empty string must have a first character");
 
         if !first.is_alphabetic() && first != '_' {
-            return Err(DomainError::InvalidVariableName {
-                name: value,
-            });
+            return Err(DomainError::InvalidVariableName { name: value });
         }
 
-        if !characters.all(|c| {
-            c.is_alphanumeric() || c == '_'
-        }) {
-            return Err(DomainError::InvalidVariableName {
-                name: value,
-            });
+        if !characters.all(|c| c.is_alphanumeric() || c == '_') {
+            return Err(DomainError::InvalidVariableName { name: value });
         }
 
         Ok(Self(value))

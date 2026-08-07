@@ -11,34 +11,34 @@
 //! in named [`Capture`] variables for later tests. Execution layers return the
 //! corresponding result types from [`result`].
 
-/// Values and interpolation primitives used in requests and expectations.
-pub mod value;
-/// Validation errors emitted while constructing domain values.
-pub mod error;
-/// Execution outcomes and assertion diagnostics produced by a runner.
-pub mod result;
-/// HTTP request descriptions independent of any HTTP client implementation.
-pub mod request;
-/// Variable identifiers and response-value captures.
-pub mod variable;
 /// JSON object assertion descriptions.
 pub mod assertion;
-/// Expected HTTP response status, headers, and body.
-pub mod expectation;
-/// An individual HTTP test case.
-pub mod test_case;
 /// Suite grouping primitives for core and pipeline execution.
 pub mod block;
+/// Validation errors emitted while constructing domain values.
+pub mod error;
+/// Expected HTTP response status, headers, and body.
+pub mod expectation;
+/// HTTP request descriptions independent of any HTTP client implementation.
+pub mod request;
+/// Execution outcomes and assertion diagnostics produced by a runner.
+pub mod result;
 /// The top-level test suite aggregate.
 pub mod suite;
+/// An individual HTTP test case.
+pub mod test_case;
+/// Values and interpolation primitives used in requests and expectations.
+pub mod value;
+/// Variable identifiers and response-value captures.
+pub mod variable;
 
-pub use value::*;
-pub use error::*;
-pub use result::*;
-pub use request::*;
-pub use variable::*;
 pub use assertion::*;
-pub use expectation::*;
-pub use test_case::*;
 pub use block::*;
+pub use error::*;
+pub use expectation::*;
+pub use request::*;
+pub use result::*;
 pub use suite::*;
+pub use test_case::*;
+pub use value::*;
+pub use variable::*;

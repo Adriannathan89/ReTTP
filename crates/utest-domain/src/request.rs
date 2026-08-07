@@ -1,10 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    InterpolatedString,
-    Value,
-};
+use crate::{InterpolatedString, Value};
 
 /// HTTP methods supported by the portable request model.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
@@ -75,32 +72,25 @@ impl HttpRequestSpec {
     /// Sets the request body.
     #[must_use]
     pub fn with_header(
-        mut self, name: impl Into<String>, 
-        value: impl Into<InterpolatedString>
+        mut self,
+        name: impl Into<String>,
+        value: impl Into<InterpolatedString>,
     ) -> Self {
         self.headers.insert(name.into(), value.into());
         self
     }
 
     #[must_use]
-    pub fn with_query_param(
-        mut self, 
-        name: impl Into<String>,
-        value: impl Into<Value>
-    ) -> Self {
+    pub fn with_query_param(mut self, name: impl Into<String>, value: impl Into<Value>) -> Self {
         self.query.insert(name.into(), value.into());
         self
     }
 
     #[must_use]
-    pub fn with_body(
-        mut self, 
-        body: RequestBody
-    ) -> Self {
+    pub fn with_body(mut self, body: RequestBody) -> Self {
         self.body = Some(body);
         self
     }
-
 }
 
 /// Encoded content to be sent with an HTTP request.

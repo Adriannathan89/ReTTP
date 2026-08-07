@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    HttpRequestSpec, 
-    ResponseExpectation,
-};
+use crate::{HttpRequestSpec, ResponseExpectation};
 
 /// One executable HTTP unit test.
 ///

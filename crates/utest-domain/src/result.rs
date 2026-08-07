@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Final state assigned by an executor to a test or aggregate block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,10 +35,7 @@ impl TestResult {
 
     /// Creates a failed result with assertion failures and an optional execution error.
     #[must_use]
-    pub fn skipped(
-        name: impl Into<String>, 
-        reason: impl Into<String>,
-    ) -> Self {
+    pub fn skipped(name: impl Into<String>, reason: impl Into<String>) -> Self {
         Self {
             name: name.into(),
             status: ExecutionStatus::Skipped,
@@ -50,7 +47,7 @@ impl TestResult {
             }),
         }
     }
-    
+
     /// Creates an aborted result caused by an internal runner failure.
     #[must_use]
     pub fn failed(
@@ -69,10 +66,7 @@ impl TestResult {
     }
 
     #[must_use]
-    pub fn aborted(
-        name: impl Into<String>,
-        reason: impl Into<String>,
-    ) -> Self {
+    pub fn aborted(name: impl Into<String>, reason: impl Into<String>) -> Self {
         Self {
             name: name.into(),
             status: ExecutionStatus::Aborted,
@@ -85,7 +79,6 @@ impl TestResult {
         }
     }
 }
-
 
 /// Aggregate outcome for a core block.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

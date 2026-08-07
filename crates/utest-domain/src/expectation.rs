@@ -1,11 +1,7 @@
 use indexmap::IndexMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{
-    InterpolatedString,
-    ObjectAssertion,
-};
-
+use crate::{InterpolatedString, ObjectAssertion};
 
 /// Expected properties of an HTTP response.
 ///
@@ -15,7 +11,7 @@ use crate::{
 pub struct ResponseExpectation {
     pub status: Option<u16>,
     pub headers: IndexMap<String, HeaderAssertion>,
-    pub body: Option<BodyAssertion>
+    pub body: Option<BodyAssertion>,
 }
 
 /// The expected shape or contents of an HTTP response body.
@@ -38,5 +34,5 @@ pub enum TextAssertion {
 pub enum HeaderAssertion {
     Exists,
     Exact(InterpolatedString),
-    Contains(InterpolatedString)
+    Contains(InterpolatedString),
 }

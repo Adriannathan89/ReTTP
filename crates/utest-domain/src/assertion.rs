@@ -1,10 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    Capture,
-    Value,
-};
+use crate::{Capture, Value};
 
 /// A JSON type expected for an asserted field.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -51,10 +48,7 @@ impl FieldAssertion {
     /// Creates an assertion that checks only the field type.
     /// Creates an assertion that checks both field type and exact value.
     #[must_use]
-    pub fn type_only(
-        field_name: impl Into<String>,
-        expected_type: ExpectedType,
-    ) -> Self {
+    pub fn type_only(field_name: impl Into<String>, expected_type: ExpectedType) -> Self {
         Self {
             field_name: field_name.into(),
             expected_type,
@@ -108,7 +102,7 @@ impl ObjectAssertion {
     pub fn partial() -> Self {
         Self {
             mode: ObjectMatchMode::Partial,
-            fields: IndexMap::new()
+            fields: IndexMap::new(),
         }
     }
 
@@ -122,8 +116,7 @@ impl ObjectAssertion {
 
     /// Adds or replaces the assertion for its field name.
     pub fn insert(&mut self, assertion: FieldAssertion) {
-        self.fields
-            .insert(assertion.field_name.clone(), assertion);
+        self.fields.insert(assertion.field_name.clone(), assertion);
     }
 }
 

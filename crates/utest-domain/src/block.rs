@@ -37,17 +37,14 @@ impl CoreBlock {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PipelineBlock {
     pub name: String,
-    pub tests: Vec<TestCase>
+    pub tests: Vec<TestCase>,
 }
 
 impl PipelineBlock {
     /// Creates a named pipeline block from its ordered tests.
     /// Returns whether the pipeline contains no tests.
     #[must_use]
-    pub fn new(
-        name: impl Into<String>,
-        tests: Vec<TestCase>,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, tests: Vec<TestCase>) -> Self {
         Self {
             name: name.into(),
             tests,
