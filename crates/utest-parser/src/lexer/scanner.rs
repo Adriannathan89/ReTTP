@@ -1,9 +1,15 @@
+//! Stateful implementation of the UTest lexer.
+
 use crate::{
     lexer::{LexResult, LexerError, LexerErrorKind, Token, TokenKind, keyword_or_identifier},
     source::{SourceSpan, SourceText},
 };
 
 #[derive(Debug)]
+/// A single-use lexer over a borrowed [`SourceText`].
+///
+/// The lexer advances by UTF-8 character width while recording byte offsets in
+/// emitted spans. Use [`Lexer::scan`] to consume it and obtain a [`LexResult`].
 pub struct Lexer<'source> {
     source: &'source SourceText,
 
@@ -18,6 +24,7 @@ pub struct Lexer<'source> {
 
 impl<'source> Lexer<'source> {
     #[must_use]
+    /// Creates a lexer positioned at the beginning of `source`.
     pub fn new(source: &'source SourceText) -> Self {
         Self {
             source,
@@ -29,6 +36,9 @@ impl<'source> Lexer<'source> {
     }
 
     #[must_use]
+    /// Consumes the source and returns all tokens and recoverable diagnostics.
+    ///
+    /// An [`TokenKind::Eof`] token is appended even when invalid input was found.
     pub fn scan(mut self) -> LexResult {
         while !self.is_at_end() {
             self.start = self.current;

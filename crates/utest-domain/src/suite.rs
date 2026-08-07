@@ -34,4 +34,10 @@ impl TestSuite {
     pub fn len(&self) -> usize {
         self.blocks.len()
     }
+
+    /// Returns whether the suite has no blocks.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.blocks.is_empty()
+    }
 }
