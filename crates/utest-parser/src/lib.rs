@@ -22,5 +22,11 @@ pub mod lexer;
 /// Source text, byte spans, and diagnostic locations.
 pub mod source;
 
+pub mod parser;
+
+pub mod ast;
+
+pub use ast::*;
 pub use lexer::*;
+pub use parser::*;
 pub use source::*;
