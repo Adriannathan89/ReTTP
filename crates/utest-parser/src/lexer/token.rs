@@ -71,8 +71,6 @@ pub enum TokenKind {
     TypeObject,
     /// The `array` assertion type keyword.
     TypeArray,
-    /// The `any` assertion type keyword.
-    TypeAny,
 
     /// The `true` literal keyword.
     True,
@@ -150,7 +148,6 @@ pub fn keyword_or_identifier(value: &str) -> TokenKind {
         "number" => TokenKind::TypeNumber,
         "object" => TokenKind::TypeObject,
         "array" => TokenKind::TypeArray,
-        "any" => TokenKind::TypeAny,
 
         // literal / special value
         "true" => TokenKind::True,

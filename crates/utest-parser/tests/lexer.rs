@@ -41,7 +41,6 @@ fn lexes_every_keyword_and_uppercase_http_method() {
             TokenKind::TypeNumber,
             TokenKind::TypeObject,
             TokenKind::TypeArray,
-            TokenKind::TypeAny,
             TokenKind::True,
             TokenKind::False,
             TokenKind::Null,
