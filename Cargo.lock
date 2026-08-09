@@ -162,7 +162,9 @@ version = "0.1.0"
 name = "utest-parser"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "thiserror",
+ "utest-domain",
 ]
 
 [[package]]
