@@ -5,6 +5,7 @@ members = [
     "crates/utest-application",
     "crates/utest-parser",
     "crates/utest-http",
+    "crates/utest-assertion",
     "crates/utest-runtime",
     "crates/utest-reporter",
     "crates/utest-cli",

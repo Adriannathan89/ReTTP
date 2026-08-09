@@ -106,7 +106,7 @@ fn resolved_request_body_supports_every_public_representation() {
 
 #[test]
 fn empty_response_headers_expose_consistent_collection_behavior() {
-    let headers = ResponseHeaders::default();
+    let headers = ResponseHeaders::new();
 
     assert!(headers.is_empty());
     assert_eq!(headers.len(), 0);
@@ -119,6 +119,33 @@ fn empty_response_headers_expose_consistent_collection_behavior() {
 
     assert_eq!((&headers).into_iter().next(), None);
     assert_eq!(headers.clone(), ResponseHeaders::default());
+}
+
+#[test]
+fn response_headers_normalize_names_and_preserve_repeated_raw_values() {
+    let mut headers = ResponseHeaders::new().with_header("Content-Type", "application/json");
+    headers.append("X-Binary", Bytes::from_static(&[0xff, 0x00]));
+    headers.append(String::from("content-type"), "text/plain");
+
+    assert_eq!(headers.len(), 2);
+    assert_eq!(
+        headers.get("CONTENT-TYPE"),
+        Some(
+            [
+                Bytes::from_static(b"application/json"),
+                Bytes::from_static(b"text/plain"),
+            ]
+            .as_slice()
+        )
+    );
+    assert_eq!(
+        headers.get("x-binary"),
+        Some([Bytes::from_static(&[0xff, 0x00])].as_slice())
+    );
+    assert_eq!(
+        headers.iter().map(|(name, _)| name).collect::<Vec<_>>(),
+        ["content-type", "x-binary"]
+    );
 }
 
 #[test]
