@@ -1,7 +1,7 @@
 //! Command-line interface for UTest.
 //!
 //! The `check` command validates a `.utest` source file without making HTTP
-//! requests. It reads the file, obtains predefined variable names from the
+//! requests. It reads the file, obtains predefined variables from the
 //! process environment and repeated `--var NAME=VALUE` arguments, and delegates
 //! the compiler pipeline to [`utest_application::check_source`].
 //!
@@ -25,8 +25,8 @@ use std::{fs, path::PathBuf, process::ExitCode};
 
 use clap::{Parser as ClapParser, Subcommand};
 use utest_application::{CheckDiagnostic, check_source};
-use utest_domain::VariableName;
 use utest_parser::{SourceText, ValidationContext};
+use utest_runtime::{VariableAssignment, VariableStore};
 
 /// Exit status used when source validation reports diagnostics.
 const CHECK_FAILED_EXIT_CODE: u8 = 3;
@@ -49,7 +49,7 @@ enum Command {
 
         /// Defines a variable for semantic checking (`NAME=VALUE`).
         #[arg(long = "var", value_name = "NAME=VALUE", value_parser = parse_variable)]
-        variables: Vec<VariableName>,
+        variables: Vec<VariableAssignment>,
     },
 }
 
@@ -63,9 +63,10 @@ fn main() -> ExitCode {
 
 /// Checks one file using CLI and environment variables as predefined names.
 ///
-/// Variable values are intentionally not interpreted at this stage because
-/// source checking only needs to establish whether referenced names exist.
-fn check(path: PathBuf, variables: Vec<VariableName>) -> ExitCode {
+/// Values are retained in the runtime store while source validation receives
+/// names only. Capture declarations that collide with predefined names are
+/// rejected by semantic validation.
+fn check(path: PathBuf, variables: Vec<VariableAssignment>) -> ExitCode {
     let content = match fs::read_to_string(&path) {
         Ok(content) => content,
         Err(error) => {
@@ -75,12 +76,10 @@ fn check(path: PathBuf, variables: Vec<VariableName>) -> ExitCode {
     };
 
     let source = SourceText::new(path.display().to_string(), content);
-    let environment_variables = std::env::vars_os()
-        .filter_map(|(name, _)| name.into_string().ok())
-        .filter_map(|name| VariableName::new(name).ok());
-    let context = ValidationContext::new()
-        .with_predefined_variables(environment_variables)
-        .with_predefined_variables(variables);
+    let mut variable_store = VariableStore::from_environment();
+    variable_store.apply_cli(variables);
+    let context =
+        ValidationContext::new().with_predefined_variables(variable_store.names().cloned());
     let report = check_source(&source, &context);
 
     if report.is_success() {
@@ -112,11 +111,8 @@ fn render_diagnostic(source: &SourceText, diagnostic: &CheckDiagnostic) {
 
 /// Validates the `NAME=VALUE` form accepted by `--var`.
 ///
-/// The name follows [`VariableName`] rules. The value may be empty and is
-/// ignored until runtime interpolation is implemented.
-fn parse_variable(raw: &str) -> Result<VariableName, String> {
-    let Some((name, _value)) = raw.split_once('=') else {
-        return Err("expected NAME=VALUE".to_owned());
-    };
-    VariableName::new(name).map_err(|error| error.to_string())
+/// Parsing splits at the first `=`, so values may be empty or contain `=`.
+fn parse_variable(raw: &str) -> Result<VariableAssignment, String> {
+    raw.parse::<VariableAssignment>()
+        .map_err(|error| error.to_string())
 }
