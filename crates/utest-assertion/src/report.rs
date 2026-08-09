@@ -14,13 +14,6 @@ pub struct AssertionReport {
 }
 
 impl AssertionReport {
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "the response evaluator is introduced in the next implementation batch"
-        )
-    )]
     pub(crate) fn new(failures: Vec<AssertionFailure>, truncated: bool) -> Self {
         Self {
             failures,

@@ -144,13 +144,19 @@ pub enum ResolvedRequestBody {
 /// Case-insensitive response headers retaining every value for repeated names.
 ///
 /// Header values remain bytes because valid HTTP header values are not
-/// required to be UTF-8. Names are stored in canonical lowercase form.
+/// required to be UTF-8. Names are stored in canonical ASCII-lowercase form.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ResponseHeaders {
     entries: IndexMap<String, Vec<Bytes>>,
 }
 
 impl ResponseHeaders {
+    /// Creates an empty response-header collection.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Returns the number of unique header names.
     #[must_use]
     pub fn len(&self) -> usize {
@@ -177,8 +183,23 @@ impl ResponseHeaders {
         }
     }
 
-    pub(crate) fn append(&mut self, name: &str, value: Bytes) {
-        self.entries.entry(name.to_owned()).or_default().push(value);
+    /// Appends one raw value under an ASCII-case-insensitive header name.
+    ///
+    /// This method intentionally preserves repeated values. HTTP adapters and
+    /// fake clients are responsible for supplying protocol-valid names and
+    /// values; the model only canonicalizes the name for lookup.
+    pub fn append(&mut self, name: impl AsRef<str>, value: impl Into<Bytes>) {
+        let name = name.as_ref().to_ascii_lowercase();
+        self.entries.entry(name).or_default().push(value.into());
+    }
+
+    /// Appends one raw header value and returns the collection.
+    ///
+    /// Repeated calls with the same name retain every value in call order.
+    #[must_use]
+    pub fn with_header(mut self, name: impl AsRef<str>, value: impl Into<Bytes>) -> Self {
+        self.append(name, value);
+        self
     }
 }
 
