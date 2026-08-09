@@ -1,0 +1,12 @@
+test "interpolated request" {
+    request GET "/data/${id}" {
+        headers {
+            "X-Direct" = "direct-value"
+            "X-Variable" = "${interpolated_string}"
+            "X-Mixed" = "something ${interpolated_string}"
+        }
+    }
+    expect {
+        status = 200
+    }
+}

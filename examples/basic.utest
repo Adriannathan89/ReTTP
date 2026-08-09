@@ -1,0 +1,7 @@
+test "health endpoint" {
+    request GET "/health"
+    expect {
+        status = 200
+        body empty
+    }
+}

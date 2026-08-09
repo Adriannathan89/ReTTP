@@ -37,6 +37,26 @@ fn interpolated_strings_and_values_report_their_contents_and_types() {
 }
 
 #[test]
+fn values_convert_from_interpolated_and_plain_strings() {
+    let direct = Value::from(InterpolatedString::new("direct-value"));
+    let interpolation_only = Value::from(String::from("${interpolated_string}"));
+    let mixed = Value::from("something ${interpolated_string}");
+
+    assert_eq!(
+        direct,
+        Value::String(InterpolatedString::new("direct-value"))
+    );
+    assert_eq!(
+        interpolation_only,
+        Value::String(InterpolatedString::new("${interpolated_string}"))
+    );
+    assert_eq!(
+        mixed,
+        Value::String(InterpolatedString::new("something ${interpolated_string}"))
+    );
+}
+
+#[test]
 fn variable_names_validate_all_rules_and_display() {
     let valid = VariableName::new("_nam3").unwrap();
     assert_eq!(valid.as_str(), "_nam3");
@@ -80,7 +100,10 @@ fn request_methods_and_builder_preserve_every_setting() {
         .with_query_param("active", Value::Boolean(true))
         .with_body(RequestBody::Json(Value::Integer(42)));
     assert_eq!(spec.path.as_str(), "/users/${id}");
-    assert_eq!(spec.headers["Accept"].as_str(), "application/json");
+    assert_eq!(
+        spec.headers["Accept"],
+        Value::String(InterpolatedString::new("application/json"))
+    );
     assert_eq!(spec.query["active"], Value::Boolean(true));
     assert_eq!(spec.body, Some(RequestBody::Json(Value::Integer(42))));
     assert_eq!(spec.timeout_ms, None);
@@ -98,6 +121,34 @@ fn request_methods_and_builder_preserve_every_setting() {
             Some(body)
         );
     }
+}
+
+#[test]
+fn request_headers_accept_values_and_preserve_declaration_order() {
+    let spec = HttpRequestSpec::new(HttpMethod::GET, "/data/${id}")
+        .with_header("X-Direct", "direct-value")
+        .with_header("X-Variable", "${interpolated_string}")
+        .with_header("X-Mixed", "something ${interpolated_string}")
+        .with_header("X-Retry-Count", Value::Integer(3))
+        .with_header("X-Direct", "replacement-value");
+
+    assert_eq!(
+        spec.headers.keys().map(String::as_str).collect::<Vec<_>>(),
+        vec!["X-Direct", "X-Variable", "X-Mixed", "X-Retry-Count"]
+    );
+    assert_eq!(
+        spec.headers["X-Direct"],
+        Value::String(InterpolatedString::new("replacement-value"))
+    );
+    assert_eq!(
+        spec.headers["X-Variable"],
+        Value::String(InterpolatedString::new("${interpolated_string}"))
+    );
+    assert_eq!(
+        spec.headers["X-Mixed"],
+        Value::String(InterpolatedString::new("something ${interpolated_string}"))
+    );
+    assert_eq!(spec.headers["X-Retry-Count"], Value::Integer(3));
 }
 
 #[test]
