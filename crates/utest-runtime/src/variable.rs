@@ -1,72 +1,127 @@
 //! Redacted runtime variable values, assignments, and scope storage.
 
-use std::{borrow::Cow, ffi::OsString, fmt, str::FromStr};
+use std::{borrow::Cow, ffi::OsString, fmt, str::FromStr, sync::Arc};
 
 use indexmap::IndexMap;
 use serde_json::Value as JsonValue;
 use utest_domain::VariableName;
 
-use crate::VariableAssignmentError;
+use crate::{PendingCaptures, RuntimeError, VariableAssignmentError};
 
 /// A runtime value supplied as text or captured as typed JSON.
 ///
+/// Its storage representation is private: captured parent/descendant values
+/// can share immutable JSON without changing the accessor contract. Cloning a
+/// capture therefore does not deep-clone its selected JSON subtree.
+///
 /// The custom [`Debug`] implementation reveals only the value's type. Use the
 /// accessors deliberately when trusted application code needs the contents.
-#[derive(Clone, PartialEq)]
-pub enum VariableValue {
-    /// UTF-8 text loaded from an environment or CLI assignment.
+#[derive(Clone)]
+pub struct VariableValue {
+    inner: VariableValueInner,
+}
+
+#[derive(Clone)]
+enum VariableValueInner {
     Text(String),
-    /// An actual JSON response field retained with its original JSON type.
     Json(JsonValue),
+    SharedJson(SharedJsonValue),
 }
 
 impl VariableValue {
+    /// Creates a UTF-8 value supplied by an environment, CLI, or embedding host.
+    #[must_use]
+    pub fn text(value: impl Into<String>) -> Self {
+        Self {
+            inner: VariableValueInner::Text(value.into()),
+        }
+    }
+
+    /// Creates an owned typed JSON value supplied by an embedding host.
+    #[must_use]
+    pub fn json(value: JsonValue) -> Self {
+        Self {
+            inner: VariableValueInner::Json(value),
+        }
+    }
+
     /// Returns the stable JSON-compatible type name of the stored value.
     #[must_use]
     pub fn type_name(&self) -> &'static str {
-        match self {
-            Self::Text(_) | Self::Json(JsonValue::String(_)) => "string",
-            Self::Json(JsonValue::Null) => "null",
-            Self::Json(JsonValue::Bool(_)) => "boolean",
-            Self::Json(JsonValue::Number(number)) if number.is_i64() || number.is_u64() => {
-                "integer"
-            }
-            Self::Json(JsonValue::Number(_)) => "number",
-            Self::Json(JsonValue::Array(_)) => "array",
-            Self::Json(JsonValue::Object(_)) => "object",
+        match &self.inner {
+            VariableValueInner::Text(_) => "string",
+            VariableValueInner::Json(value) => json_type_name(value),
+            VariableValueInner::SharedJson(value) => json_type_name(value.as_json()),
         }
     }
 
     /// Returns text supplied by an environment or CLI source.
     #[must_use]
     pub fn as_text(&self) -> Option<&str> {
-        match self {
-            Self::Text(value) => Some(value),
-            Self::Json(_) => None,
+        match &self.inner {
+            VariableValueInner::Text(value) => Some(value),
+            VariableValueInner::Json(_) | VariableValueInner::SharedJson(_) => None,
         }
     }
 
     /// Returns the captured JSON value without cloning it.
     #[must_use]
-    pub const fn as_json(&self) -> Option<&JsonValue> {
-        match self {
-            Self::Json(value) => Some(value),
-            Self::Text(_) => None,
+    pub fn as_json(&self) -> Option<&JsonValue> {
+        match &self.inner {
+            VariableValueInner::Json(value) => Some(value),
+            VariableValueInner::SharedJson(value) => Some(value.as_json()),
+            VariableValueInner::Text(_) => None,
         }
     }
 
     pub(crate) fn scalar_text(&self) -> Option<Cow<'_, str>> {
-        match self {
-            Self::Text(value) | Self::Json(JsonValue::String(value)) => Some(Cow::Borrowed(value)),
-            Self::Json(JsonValue::Null) => Some(Cow::Borrowed("null")),
-            Self::Json(JsonValue::Bool(value)) => Some(Cow::Owned(value.to_string())),
-            Self::Json(JsonValue::Number(value)) => Some(Cow::Owned(value.to_string())),
-            Self::Json(JsonValue::Array(_) | JsonValue::Object(_)) => None,
+        match &self.inner {
+            VariableValueInner::Text(value) => Some(Cow::Borrowed(value)),
+            VariableValueInner::Json(value) => scalar_json_text(value),
+            VariableValueInner::SharedJson(value) => scalar_json_text(value.as_json()),
         }
     }
 
-    pub(crate) const fn is_structured(&self) -> bool {
-        matches!(self, Self::Json(JsonValue::Array(_) | JsonValue::Object(_)))
+    pub(crate) fn is_structured(&self) -> bool {
+        self.as_json()
+            .is_some_and(|value| value.is_array() || value.is_object())
+    }
+
+    pub(crate) fn shared_json(root: Arc<JsonValue>, path: &[String]) -> Self {
+        Self {
+            inner: VariableValueInner::SharedJson(SharedJsonValue::at_path(root, path)),
+        }
+    }
+}
+
+impl From<String> for VariableValue {
+    fn from(value: String) -> Self {
+        Self::text(value)
+    }
+}
+
+impl From<&str> for VariableValue {
+    fn from(value: &str) -> Self {
+        Self::text(value)
+    }
+}
+
+impl From<JsonValue> for VariableValue {
+    fn from(value: JsonValue) -> Self {
+        Self::json(value)
+    }
+}
+
+impl PartialEq for VariableValue {
+    fn eq(&self, other: &Self) -> bool {
+        match (&self.inner, &other.inner) {
+            (VariableValueInner::Text(left), VariableValueInner::Text(right)) => left == right,
+            (
+                VariableValueInner::Json(_) | VariableValueInner::SharedJson(_),
+                VariableValueInner::Json(_) | VariableValueInner::SharedJson(_),
+            ) => self.as_json() == other.as_json(),
+            _ => false,
+        }
     }
 }
 
@@ -77,6 +132,53 @@ impl fmt::Debug for VariableValue {
             .field("type", &self.type_name())
             .field("value", &"<redacted>")
             .finish()
+    }
+}
+
+#[derive(Clone)]
+struct SharedJsonValue {
+    root: Arc<JsonValue>,
+    path: Arc<[String]>,
+}
+
+impl SharedJsonValue {
+    fn as_json(&self) -> &JsonValue {
+        let mut value = self.root.as_ref();
+        for segment in self.path.iter() {
+            value = value
+                .get(segment)
+                .expect("a shared capture path must remain valid");
+        }
+        value
+    }
+
+    fn at_path(root: Arc<JsonValue>, path: &[String]) -> Self {
+        Self {
+            root,
+            path: Arc::from(path),
+        }
+    }
+}
+
+fn scalar_json_text(value: &JsonValue) -> Option<Cow<'_, str>> {
+    match value {
+        JsonValue::String(value) => Some(Cow::Borrowed(value)),
+        JsonValue::Null => Some(Cow::Borrowed("null")),
+        JsonValue::Bool(value) => Some(Cow::Owned(value.to_string())),
+        JsonValue::Number(value) => Some(Cow::Owned(value.to_string())),
+        JsonValue::Array(_) | JsonValue::Object(_) => None,
+    }
+}
+
+fn json_type_name(value: &JsonValue) -> &'static str {
+    match value {
+        JsonValue::Null => "null",
+        JsonValue::Bool(_) => "boolean",
+        JsonValue::Number(number) if number.is_i64() || number.is_u64() => "integer",
+        JsonValue::Number(_) => "number",
+        JsonValue::String(_) => "string",
+        JsonValue::Array(_) => "array",
+        JsonValue::Object(_) => "object",
     }
 }
 
@@ -134,8 +236,8 @@ impl fmt::Debug for VariableAssignment {
 /// A cloneable variable scope with deterministic insertion order.
 ///
 /// Applying CLI assignments replaces previous environment or CLI values while
-/// retaining the name's original position. Capture commit is added by the
-/// transactional capture stage.
+/// retaining the name's original position. Capture commit never replaces an
+/// existing name and validates the entire transaction before mutation.
 #[derive(Clone, Default, PartialEq)]
 pub struct VariableStore {
     values: IndexMap<VariableName, VariableValue>,
@@ -171,14 +273,14 @@ impl VariableStore {
             let Ok(name) = VariableName::new(name) else {
                 continue;
             };
-            self.insert_predefined(name, VariableValue::Text(value));
+            self.insert_predefined(name, VariableValue::text(value));
         }
     }
 
     /// Applies assignments from left to right using last-assignment-wins.
     pub fn apply_cli(&mut self, assignments: impl IntoIterator<Item = VariableAssignment>) {
         for assignment in assignments {
-            self.insert_predefined(assignment.name, VariableValue::Text(assignment.value));
+            self.insert_predefined(assignment.name, VariableValue::text(assignment.value));
         }
     }
 
@@ -218,6 +320,20 @@ impl VariableStore {
     /// Iterates over variable names in deterministic insertion order.
     pub fn names(&self) -> impl ExactSizeIterator<Item = &VariableName> {
         self.values.keys()
+    }
+
+    /// Atomically commits captures from one successful test.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuntimeError::DuplicateVariable`] when any captured name is
+    /// already visible. The store is unchanged when an error is returned.
+    pub fn commit(&mut self, pending: PendingCaptures) -> Result<(), RuntimeError> {
+        if let Some(name) = pending.names().find(|name| self.contains(name)) {
+            return Err(RuntimeError::DuplicateVariable { name: name.clone() });
+        }
+        self.values.extend(pending.into_values());
+        Ok(())
     }
 }
 

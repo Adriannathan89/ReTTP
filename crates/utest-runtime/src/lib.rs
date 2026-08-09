@@ -10,12 +10,14 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod capture;
 mod config;
 mod error;
 mod interpolation;
 mod resolver;
 mod variable;
 
+pub use capture::{CaptureEngine, CaptureEvaluation, PendingCaptures};
 pub use config::{
     DEFAULT_MAX_INTERPOLATED_BYTES, DEFAULT_MAX_RESOLUTION_DEPTH, HARD_MAX_INTERPOLATED_BYTES,
     HARD_MAX_RESOLUTION_DEPTH, RuntimeConfig, RuntimeConfigError,

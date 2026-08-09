@@ -113,8 +113,8 @@ fn assignments_split_once_and_accept_empty_or_equals_containing_values() {
 fn assignment_and_variable_debug_output_redacts_contents() {
     let secret = "do-not-print-this-secret";
     let assignment = VariableAssignment::new(name("TOKEN"), secret);
-    let text = VariableValue::Text(secret.to_owned());
-    let json = VariableValue::Json(json!({"password": secret}));
+    let text = VariableValue::text(secret);
+    let json = VariableValue::json(json!({"password": secret}));
 
     for rendered in [
         format!("{assignment:?}"),
@@ -129,17 +129,17 @@ fn assignment_and_variable_debug_output_redacts_contents() {
 #[test]
 fn variable_values_preserve_types_and_expose_only_matching_accessors() {
     let cases = [
-        (VariableValue::Json(json!(null)), "null"),
-        (VariableValue::Json(json!(true)), "boolean"),
-        (VariableValue::Json(json!(-1)), "integer"),
-        (VariableValue::Json(json!(u64::MAX)), "integer"),
-        (VariableValue::Json(json!(1.25)), "number"),
-        (VariableValue::Json(json!("captured")), "string"),
-        (VariableValue::Json(json!([1, 2])), "array"),
-        (VariableValue::Json(json!({"id": 1})), "object"),
+        (VariableValue::json(json!(null)), "null"),
+        (VariableValue::json(json!(true)), "boolean"),
+        (VariableValue::json(json!(-1)), "integer"),
+        (VariableValue::json(json!(u64::MAX)), "integer"),
+        (VariableValue::json(json!(1.25)), "number"),
+        (VariableValue::json(json!("captured")), "string"),
+        (VariableValue::json(json!([1, 2])), "array"),
+        (VariableValue::json(json!({"id": 1})), "object"),
     ];
 
-    let text = VariableValue::Text("provided".to_owned());
+    let text = VariableValue::text("provided");
     assert_eq!(text.type_name(), "string");
     assert_eq!(text.as_text(), Some("provided"));
     assert_eq!(text.as_json(), None);

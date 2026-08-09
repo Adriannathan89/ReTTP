@@ -28,11 +28,11 @@ fn store(entries: impl IntoIterator<Item = (&'static str, VariableValue)>) -> Va
 #[test]
 fn resolves_request_locations_in_declaration_order_without_consuming_variables() {
     let variables = store([
-        ("ID", VariableValue::Text("42".into())),
-        ("TOKEN", VariableValue::Json(json!("secret"))),
-        ("COUNT", VariableValue::Json(json!(7))),
-        ("ACTIVE", VariableValue::Json(json!(true))),
-        ("NONE", VariableValue::Json(json!(null))),
+        ("ID", VariableValue::text("42")),
+        ("TOKEN", VariableValue::json(json!("secret"))),
+        ("COUNT", VariableValue::json(json!(7))),
+        ("ACTIVE", VariableValue::json(json!(true))),
+        ("NONE", VariableValue::json(json!(null))),
     ]);
     let mut request = HttpRequestSpec::new(HttpMethod::POST, "/users/${ID}/${ID}")
         .with_header("authorization", "Bearer ${TOKEN}")
@@ -65,9 +65,9 @@ fn exact_structured_placeholders_preserve_json_types_only_in_json_body() {
     let variables = store([
         (
             "OBJECT",
-            VariableValue::Json(json!({"id": u64::MAX, "nested": [true, null]})),
+            VariableValue::json(json!({"id": u64::MAX, "nested": [true, null]})),
         ),
-        ("ARRAY", VariableValue::Json(json!([1, {"ok": false}]))),
+        ("ARRAY", VariableValue::json(json!([1, {"ok": false}]))),
     ]);
     let body = Value::Object(IndexMap::from([
         ("object".into(), Value::String("${OBJECT}".into())),
@@ -111,8 +111,8 @@ fn exact_structured_placeholders_preserve_json_types_only_in_json_body() {
 #[test]
 fn scalar_json_placeholders_stay_strings_and_mixed_structured_text_is_rejected() {
     let variables = store([
-        ("NUMBER", VariableValue::Json(json!(10))),
-        ("OBJECT", VariableValue::Json(json!({"id": 1}))),
+        ("NUMBER", VariableValue::json(json!(10))),
+        ("OBJECT", VariableValue::json(json!({"id": 1}))),
     ]);
     let scalar = HttpRequestSpec::new(HttpMethod::POST, "/")
         .with_body(RequestBody::Json(Value::String("${NUMBER}".into())));
@@ -140,7 +140,7 @@ fn scalar_json_placeholders_stay_strings_and_mixed_structured_text_is_rejected()
 
 #[test]
 fn structured_placeholders_are_rejected_in_every_non_json_request_location() {
-    let variables = store([("DATA", VariableValue::Json(json!([1, 2])))]);
+    let variables = store([("DATA", VariableValue::json(json!([1, 2])))]);
     let cases = [
         (
             HttpRequestSpec::new(HttpMethod::GET, "/${DATA}"),
@@ -271,7 +271,7 @@ fn rejects_non_finite_numbers_and_values_beyond_the_recursive_limit() {
 
 #[test]
 fn resolves_headers_text_and_empty_expectations() {
-    let variables = store([("VALUE", VariableValue::Text("resolved".into()))]);
+    let variables = store([("VALUE", VariableValue::text("resolved"))]);
     let expectation = ResponseExpectation {
         status: Some(201),
         headers: IndexMap::from([
@@ -334,7 +334,7 @@ fn resolves_headers_text_and_empty_expectations() {
 fn resolves_recursive_expected_json_and_retains_capture_metadata() {
     let variables = store([(
         "EXPECTED",
-        VariableValue::Json(json!({
+        VariableValue::json(json!({
             "id": u64::MAX,
             "ratio": 1.5,
             "active": true,
@@ -445,7 +445,7 @@ fn resolves_every_literal_expected_json_value_without_changing_types() {
 
 #[test]
 fn structured_values_are_rejected_in_expected_text_and_headers() {
-    let variables = store([("OBJECT", VariableValue::Json(json!({"id": 1})))]);
+    let variables = store([("OBJECT", VariableValue::json(json!({"id": 1})))]);
     let cases = [
         ResponseExpectation {
             headers: IndexMap::from([(
@@ -514,7 +514,7 @@ fn expectation_resolution_honors_depth_and_first_error_order() {
         Err(RuntimeError::NestingLimitExceeded { limit: 1 })
     );
 
-    let variables = store([("DEEP", VariableValue::Json(json!({"child": null})))]);
+    let variables = store([("DEEP", VariableValue::json(json!({"child": null})))]);
     let mut captured = ObjectAssertion::partial();
     captured.insert(FieldAssertion::type_and_value(
         "deep",

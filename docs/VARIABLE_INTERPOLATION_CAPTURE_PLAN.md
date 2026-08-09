@@ -171,6 +171,12 @@ Capture extraction:
 only when no collision exists. A semantic invariant violation therefore cannot
 leave a partially modified scope.
 
+Captured storage uses private shared ownership to avoid response-sized memory
+amplification. Each minimal topmost captured subtree is cloned once into an
+immutable `Arc`; descendant captures retain only that shared root and a short
+relative field path. Independent branches do not retain unrelated response
+fields, and cloning a variable scope does not deep-clone captured JSON.
+
 ## Error Model and Redaction
 
 `RuntimeError` distinguishes:
