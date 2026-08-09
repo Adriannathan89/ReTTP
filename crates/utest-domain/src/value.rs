@@ -8,12 +8,19 @@ use serde::{Deserialize, Serialize};
 /// that must be resolved from captured variables at execution time.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Value {
+    /// UTF-8 text that may contain variable interpolation placeholders.
     String(InterpolatedString),
+    /// Signed 64-bit integer value.
     Integer(i64),
+    /// Finite double-precision floating-point value.
     Number(f64),
+    /// Boolean value.
     Boolean(bool),
+    /// Explicit null value.
     Null,
+    /// Ordered collection of recursively typed values.
     Array(Vec<Value>),
+    /// Insertion-ordered mapping of string keys to recursively typed values.
     Object(IndexMap<String, Value>),
 }
 
@@ -30,6 +37,27 @@ impl Value {
             Value::Array(_) => "array",
             Value::Object(_) => "object",
         }
+    }
+}
+
+/// Wraps an interpolated string as a domain string value without changing it.
+impl From<InterpolatedString> for Value {
+    fn from(value: InterpolatedString) -> Self {
+        Self::String(value)
+    }
+}
+
+/// Converts owned UTF-8 text into an interpolation-capable domain string value.
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Self::String(value.into())
+    }
+}
+
+/// Copies borrowed UTF-8 text into an interpolation-capable domain string value.
+impl From<&str> for Value {
+    fn from(value: &str) -> Self {
+        Self::String(value.into())
     }
 }
 
@@ -63,12 +91,14 @@ impl InterpolatedString {
     }
 }
 
+/// Converts owned UTF-8 text into an unresolved interpolated string.
 impl From<String> for InterpolatedString {
     fn from(value: String) -> Self {
         Self::new(value)
     }
 }
 
+/// Copies borrowed UTF-8 text into an unresolved interpolated string.
 impl From<&str> for InterpolatedString {
     fn from(value: &str) -> Self {
         Self::new(value)

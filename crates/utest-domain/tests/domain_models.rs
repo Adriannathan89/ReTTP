@@ -37,6 +37,26 @@ fn interpolated_strings_and_values_report_their_contents_and_types() {
 }
 
 #[test]
+fn values_convert_from_interpolated_and_plain_strings() {
+    let direct = Value::from(InterpolatedString::new("direct-value"));
+    let interpolation_only = Value::from(String::from("${interpolated_string}"));
+    let mixed = Value::from("something ${interpolated_string}");
+
+    assert_eq!(
+        direct,
+        Value::String(InterpolatedString::new("direct-value"))
+    );
+    assert_eq!(
+        interpolation_only,
+        Value::String(InterpolatedString::new("${interpolated_string}"))
+    );
+    assert_eq!(
+        mixed,
+        Value::String(InterpolatedString::new("something ${interpolated_string}"))
+    );
+}
+
+#[test]
 fn variable_names_validate_all_rules_and_display() {
     let valid = VariableName::new("_nam3").unwrap();
     assert_eq!(valid.as_str(), "_nam3");
