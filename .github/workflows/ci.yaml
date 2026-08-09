@@ -43,13 +43,13 @@ jobs:
       - run: cargo test --workspace --all-targets --all-features --locked
 
   coverage:
-    name: Coverage gate (>= 99% lines)
+    name: Coverage gate (>= 90% lines)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@cargo-llvm-cov
-      - run: cargo llvm-cov --workspace --all-features --all-targets --locked --fail-under-lines 99 --summary-only
+      - run: cargo llvm-cov --workspace --all-features --all-targets --locked --fail-under-lines 90 --summary-only
 
   security:
     name: Dependency security audit

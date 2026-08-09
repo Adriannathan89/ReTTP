@@ -1,7 +1,4 @@
-use utest_parser::{
-    SourceSpan,
-    parser::error::{ParserError, ParserErrorKind},
-};
+use utest_parser::{ParserError, ParserErrorKind, SourceSpan};
 
 #[test]
 fn parser_error_new_preserves_kind_and_span() {
@@ -46,10 +43,10 @@ fn every_parser_error_kind_has_a_human_readable_message() {
         ),
         (
             ParserErrorKind::RequestAfterExpectation,
-            "request declaration must appear before expectation".to_owned(),
+            "request declarations must appear before expectations".to_owned(),
         ),
         (
-            ParserErrorKind::CaptureRequireType,
+            ParserErrorKind::CaptureRequiresType,
             "a capture requires an explicit assertion type".to_owned(),
         ),
         (
