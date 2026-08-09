@@ -136,6 +136,24 @@ fn duplicate_var_names_are_accepted_as_one_predefined_name() {
 }
 
 #[test]
+fn predefined_cli_variable_cannot_be_redeclared_as_a_capture() {
+    let source = TemporaryFile::text(
+        "capture-collision.utest",
+        r#"test "capture" {
+            request GET "/"
+            expect { body { id: integer -> PREDEFINED } }
+        }"#,
+    );
+    let secret = "must-not-appear-in-diagnostics";
+    let output = run_check(source.path(), &["--var", &format!("PREDEFINED={secret}")]);
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(stdout(&output).is_empty());
+    assert!(stderr(&output).contains("variable `PREDEFINED` is already defined"));
+    assert!(!stderr(&output).contains(secret));
+}
+
+#[test]
 fn missing_and_invalid_var_arguments_are_clap_errors() {
     let source = TemporaryFile::text(
         "variable-errors.utest",

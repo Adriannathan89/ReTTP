@@ -10,5 +10,5 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4.5.50", features = ["derive"] }
 utest-application = { path = "../utest-application" }
-utest-domain = { path = "../utest-domain" }
 utest-parser = { path = "../utest-parser" }
+utest-runtime = { path = "../utest-runtime" }

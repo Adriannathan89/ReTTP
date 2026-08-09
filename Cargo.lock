@@ -1443,8 +1443,8 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "utest-application",
- "utest-domain",
  "utest-parser",
+ "utest-runtime",
 ]
 
 [[package]]
@@ -1489,6 +1489,12 @@ version = "0.1.0"
 [[package]]
 name = "utest-runtime"
 version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "serde_json",
+ "thiserror",
+ "utest-domain",
+]
 
 [[package]]
 name = "utf8_iter"
