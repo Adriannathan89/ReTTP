@@ -181,9 +181,11 @@ fn expectations_cases_blocks_and_suites_keep_domain_structure() {
     ]);
     assert_eq!(suite.name, None);
     assert_eq!(suite.len(), 3);
+    assert!(!suite.is_empty());
     let named = TestSuite::named("API", vec![]);
     assert_eq!(named.name.as_deref(), Some("API"));
     assert_eq!(named.len(), 0);
+    assert!(named.is_empty());
     assert!(TestSuite::default().blocks.is_empty());
 }
 

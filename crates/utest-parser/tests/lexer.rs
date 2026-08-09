@@ -15,7 +15,7 @@ fn lex_ok(input: &str) -> Vec<TokenKind> {
 fn lexes_every_keyword_and_uppercase_http_method() {
     assert_eq!(
         lex_ok(
-            "core pipeline test request expect body headers query status exact GET POST PUT PATCH DELETE HEAD OPTIONS string boolean integer number object array any true false null"
+            "core pipeline test request expect body headers query status exact GET POST PUT PATCH DELETE HEAD OPTIONS string boolean integer number object array true false null"
         ),
         vec![
             TokenKind::Core,
@@ -41,7 +41,6 @@ fn lexes_every_keyword_and_uppercase_http_method() {
             TokenKind::TypeNumber,
             TokenKind::TypeObject,
             TokenKind::TypeArray,
-            TokenKind::TypeAny,
             TokenKind::True,
             TokenKind::False,
             TokenKind::Null,

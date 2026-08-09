@@ -6,6 +6,10 @@ use crate::TestCase;
 ///
 /// Blocks allow a suite format to represent standalone tests, independent core
 /// groups, and named pipelines without coupling the domain model to a scheduler.
+///
+/// `Test` intentionally stores its public payload directly. Boxing it would make
+/// the domain API less ergonomic solely to optimize an infrequent enum variant.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SuiteBlock {
     Core(CoreBlock),
