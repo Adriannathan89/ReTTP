@@ -1426,6 +1426,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "utest-assertion"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "indexmap",
+ "serde_json",
+ "thiserror",
+ "utest-domain",
+ "utest-http",
+]
+
+[[package]]
 name = "utest-cli"
 version = "0.1.0"
 dependencies = [
