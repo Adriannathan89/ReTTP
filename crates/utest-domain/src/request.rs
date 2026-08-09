@@ -1,3 +1,5 @@
+//! Transport-independent HTTP request domain types.
+
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -6,18 +8,24 @@ use crate::{InterpolatedString, Value};
 /// HTTP methods supported by the portable request model.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum HttpMethod {
+    /// Retrieves a resource without a request body.
     GET,
+    /// Creates or submits a resource and may include a request body.
     POST,
+    /// Replaces a resource and may include a request body.
     PUT,
+    /// Partially updates a resource and may include a request body.
     PATCH,
+    /// Deletes a resource without a request body in the UTest DSL.
     DELETE,
+    /// Retrieves response metadata without a response body.
     HEAD,
+    /// Retrieves communication options for a resource.
     OPTIONS,
 }
 
 impl HttpMethod {
     /// Returns the conventional uppercase HTTP method token.
-    /// Returns whether this model permits a request body for the method.
     #[must_use]
     pub const fn as_str(&self) -> &'static str {
         match self {
@@ -31,7 +39,7 @@ impl HttpMethod {
         }
     }
 
-    /// Adds or replaces a request header.
+    /// Returns whether the UTest DSL permits a request body for this method.
     #[must_use]
     pub const fn allows_body(&self) -> bool {
         matches!(self, Self::POST | Self::PUT | Self::PATCH)
@@ -44,19 +52,28 @@ impl HttpMethod {
 /// selected [`RequestBody`], applying timeout behavior, and sending this
 /// specification through their native HTTP stack. `IndexMap` preserves the
 /// declaration order when a suite is serialized or displayed.
+///
+/// String header values can be direct, interpolation-only, or mixed text such
+/// as `"something ${variable}"`. Non-string [`Value`] variants remain available
+/// for adapters that support typed header serialization.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct HttpRequestSpec {
+    /// HTTP method used by the request.
     pub method: HttpMethod,
+    /// Unresolved path, which may contain interpolation placeholders.
     pub path: InterpolatedString,
-    pub headers: IndexMap<String, InterpolatedString>,
+    /// Insertion-ordered request headers and their typed values.
+    pub headers: IndexMap<String, Value>,
+    /// Insertion-ordered URL query parameters.
     pub query: IndexMap<String, Value>,
+    /// Optional encoded request body.
     pub body: Option<RequestBody>,
+    /// Optional request timeout in milliseconds.
     pub timeout_ms: Option<u64>,
 }
 
 impl HttpRequestSpec {
     /// Creates a request with empty headers/query parameters and no body or timeout.
-    /// Adds or replaces a query parameter.
     #[must_use]
     pub fn new(method: HttpMethod, path: impl Into<InterpolatedString>) -> Self {
         Self {
@@ -69,17 +86,17 @@ impl HttpRequestSpec {
         }
     }
 
-    /// Sets the request body.
+    /// Adds or replaces a typed request header.
+    ///
+    /// Replacing a header preserves its existing `IndexMap` position.
+    /// Adds or replaces a typed query parameter.
     #[must_use]
-    pub fn with_header(
-        mut self,
-        name: impl Into<String>,
-        value: impl Into<InterpolatedString>,
-    ) -> Self {
+    pub fn with_header(mut self, name: impl Into<String>, value: impl Into<Value>) -> Self {
         self.headers.insert(name.into(), value.into());
         self
     }
 
+    /// Sets or replaces the request body.
     #[must_use]
     pub fn with_query_param(mut self, name: impl Into<String>, value: impl Into<Value>) -> Self {
         self.query.insert(name.into(), value.into());
@@ -98,8 +115,12 @@ impl HttpRequestSpec {
 /// The executor chooses the concrete wire encoding and corresponding headers.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum RequestBody {
+    /// JSON-compatible typed value.
     Json(Value),
+    /// Plain or interpolated UTF-8 text.
     Text(InterpolatedString),
+    /// Insertion-ordered form fields.
     FormData(IndexMap<String, Value>),
+    /// Uninterpreted binary bytes.
     Binary(Vec<u8>),
 }
