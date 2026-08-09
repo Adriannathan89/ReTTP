@@ -20,6 +20,10 @@ fn resolved_value_supports_public_scalar_conversions() {
         ResolvedValue::String("owned".into())
     );
     assert_eq!(ResolvedValue::from(-42_i64), ResolvedValue::Integer(-42));
+    assert_eq!(
+        ResolvedValue::from(u64::MAX),
+        ResolvedValue::UnsignedInteger(u64::MAX)
+    );
     assert_eq!(ResolvedValue::from(3.5_f64), ResolvedValue::Number(3.5));
     assert_eq!(ResolvedValue::from(true), ResolvedValue::Boolean(true));
 }

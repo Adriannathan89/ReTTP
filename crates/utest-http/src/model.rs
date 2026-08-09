@@ -19,6 +19,8 @@ pub enum ResolvedValue {
     String(String),
     /// Signed 64-bit integer.
     Integer(i64),
+    /// Unsigned 64-bit integer retained from a captured JSON response.
+    UnsignedInteger(u64),
     /// Double-precision number. The adapter rejects non-finite values.
     Number(f64),
     /// Boolean value.
@@ -46,6 +48,12 @@ impl From<&str> for ResolvedValue {
 impl From<i64> for ResolvedValue {
     fn from(value: i64) -> Self {
         Self::Integer(value)
+    }
+}
+
+impl From<u64> for ResolvedValue {
+    fn from(value: u64) -> Self {
+        Self::UnsignedInteger(value)
     }
 }
 

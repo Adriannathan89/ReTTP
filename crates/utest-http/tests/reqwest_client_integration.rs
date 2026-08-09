@@ -150,10 +150,12 @@ async fn sends_all_methods_beneath_base_path_and_encodes_scalar_metadata() {
         let request = ResolvedHttpRequest::new(method, "/users/alice")
             .with_header("x-string", "direct value")
             .with_header("x-integer", -12_i64)
+            .with_header("x-unsigned", u64::MAX)
             .with_header("x-number", 1.25_f64)
             .with_header("x-boolean", true)
             .with_query_param("text", "a value")
             .with_query_param("integer", -4_i64)
+            .with_query_param("unsigned", u64::MAX)
             .with_query_param("number", 2.5_f64)
             .with_query_param("boolean", false)
             .with_query_param("nothing", ResolvedValue::Null);
@@ -165,11 +167,13 @@ async fn sends_all_methods_beneath_base_path_and_encodes_scalar_metadata() {
         let received = server.request.await.unwrap();
         let received = request_text(&received);
         assert!(received.starts_with(&format!(
-            "{} /api/users/alice?text=a+value&integer=-4&number=2.5&boolean=false&nothing=null HTTP/1.1\r\n",
-            method.as_str()
+            "{} /api/users/alice?text=a+value&integer=-4&unsigned={}&number=2.5&boolean=false&nothing=null HTTP/1.1\r\n",
+            method.as_str(),
+            u64::MAX,
         )));
         assert!(received.contains("x-string: direct value\r\n"));
         assert!(received.contains("x-integer: -12\r\n"));
+        assert!(received.contains(&format!("x-unsigned: {}\r\n", u64::MAX)));
         assert!(received.contains("x-number: 1.25\r\n"));
         assert!(received.contains("x-boolean: true\r\n"));
     }
@@ -251,6 +255,7 @@ async fn encodes_all_request_bodies_and_respects_content_type_override() {
     let mut object = IndexMap::new();
     object.insert("string".into(), "value".into());
     object.insert("integer".into(), (-2_i64).into());
+    object.insert("unsigned".into(), u64::MAX.into());
     object.insert("number".into(), 3.5_f64.into());
     object.insert("boolean".into(), true.into());
     object.insert("null".into(), ResolvedValue::Null);
@@ -262,6 +267,7 @@ async fn encodes_all_request_bodies_and_respects_content_type_override() {
     let mut form = IndexMap::new();
     form.insert("name".into(), "Ada Lovelace".into());
     form.insert("count".into(), 2_i64.into());
+    form.insert("unsigned".into(), u64::MAX.into());
     form.insert("ratio".into(), 1.5_f64.into());
     form.insert("active".into(), false.into());
     form.insert("empty".into(), ResolvedValue::Null);
@@ -270,7 +276,7 @@ async fn encodes_all_request_bodies_and_respects_content_type_override() {
         (
             ResolvedRequestBody::Json(ResolvedValue::Object(object)),
             "application/json",
-            br#"{"string":"value","integer":-2,"number":3.5,"boolean":true,"null":null,"array":[1]}"#.as_slice(),
+            br#"{"string":"value","integer":-2,"unsigned":18446744073709551615,"number":3.5,"boolean":true,"null":null,"array":[1]}"#.as_slice(),
             None,
         ),
         (
@@ -282,7 +288,7 @@ async fn encodes_all_request_bodies_and_respects_content_type_override() {
         (
             ResolvedRequestBody::FormData(form),
             "application/x-www-form-urlencoded",
-            b"name=Ada+Lovelace&count=2&ratio=1.5&active=false&empty=null".as_slice(),
+            b"name=Ada+Lovelace&count=2&unsigned=18446744073709551615&ratio=1.5&active=false&empty=null".as_slice(),
             None,
         ),
         (

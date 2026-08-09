@@ -183,6 +183,7 @@ fn wire_scalar(
     match value {
         ResolvedValue::String(value) => Ok(value.clone()),
         ResolvedValue::Integer(value) => Ok(value.to_string()),
+        ResolvedValue::UnsignedInteger(value) => Ok(value.to_string()),
         ResolvedValue::Number(value) if value.is_finite() => Ok(value.to_string()),
         ResolvedValue::Number(_) => Err(HttpError::invalid_request(format!(
             "a {location} number must be finite"
@@ -202,6 +203,7 @@ fn to_json(value: &ResolvedValue, depth: usize) -> Result<JsonValue, HttpError> 
     match value {
         ResolvedValue::String(value) => Ok(JsonValue::String(value.clone())),
         ResolvedValue::Integer(value) => Ok(JsonValue::Number((*value).into())),
+        ResolvedValue::UnsignedInteger(value) => Ok(JsonValue::Number((*value).into())),
         ResolvedValue::Number(value) => JsonNumber::from_f64(*value)
             .map(JsonValue::Number)
             .ok_or_else(|| HttpError::invalid_request("a JSON number must be finite")),

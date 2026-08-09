@@ -64,6 +64,10 @@ impl VariableValue {
             Self::Json(JsonValue::Array(_) | JsonValue::Object(_)) => None,
         }
     }
+
+    pub(crate) const fn is_structured(&self) -> bool {
+        matches!(self, Self::Json(JsonValue::Array(_) | JsonValue::Object(_)))
+    }
 }
 
 impl fmt::Debug for VariableValue {
@@ -167,16 +171,24 @@ impl VariableStore {
             let Ok(name) = VariableName::new(name) else {
                 continue;
             };
-            self.values.insert(name, VariableValue::Text(value));
+            self.insert_predefined(name, VariableValue::Text(value));
         }
     }
 
     /// Applies assignments from left to right using last-assignment-wins.
     pub fn apply_cli(&mut self, assignments: impl IntoIterator<Item = VariableAssignment>) {
         for assignment in assignments {
-            self.values
-                .insert(assignment.name, VariableValue::Text(assignment.value));
+            self.insert_predefined(assignment.name, VariableValue::Text(assignment.value));
         }
+    }
+
+    /// Adds or replaces a predefined value supplied by an embedding host.
+    ///
+    /// Replacement follows the same policy as CLI precedence and preserves an
+    /// existing name's insertion position. Capture transactions never call
+    /// this method and therefore cannot overwrite visible variables.
+    pub fn insert_predefined(&mut self, name: VariableName, value: VariableValue) {
+        self.values.insert(name, value);
     }
 
     /// Returns a value without copying its potentially large contents.

@@ -1490,10 +1490,13 @@ version = "0.1.0"
 name = "utest-runtime"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "indexmap",
  "serde_json",
  "thiserror",
+ "utest-assertion",
  "utest-domain",
+ "utest-http",
 ]
 
 [[package]]

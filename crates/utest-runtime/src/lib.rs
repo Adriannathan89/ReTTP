@@ -13,6 +13,7 @@
 mod config;
 mod error;
 mod interpolation;
+mod resolver;
 mod variable;
 
 pub use config::{
@@ -21,4 +22,5 @@ pub use config::{
 };
 pub use error::{ResolutionLocation, RuntimeError, VariableAssignmentError};
 pub use interpolation::Interpolator;
+pub use resolver::RuntimeResolver;
 pub use variable::{VariableAssignment, VariableStore, VariableValue};
