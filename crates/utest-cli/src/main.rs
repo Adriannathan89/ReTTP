@@ -1,118 +1,41 @@
-//! Command-line interface for UTest.
+//! Command-line interface for validating and executing UTest source files.
 //!
-//! The `check` command validates a `.utest` source file without making HTTP
-//! requests. It reads the file, obtains predefined variables from the
-//! process environment and repeated `--var NAME=VALUE` arguments, and delegates
-//! the compiler pipeline to [`utest_application::check_source`].
+//! `check` compiles source without network access. `run` requires a base URL,
+//! performs the same complete compiler pipeline, executes only a successfully
+//! converted suite, prints a strictly redacted terminal report, and optionally
+//! writes JSON and JUnit artifacts.
 //!
 //! # Exit codes
 //!
-//! - `0`: the source is valid;
-//! - `1`: the source file could not be read;
-//! - `2`: command-line usage is invalid (reported by Clap);
-//! - `3`: lexical, syntax, or semantic checking failed.
-//!
-//! # Examples
-//!
-//! ```text
-//! utest check examples/basic.utest
-//! utest check examples/interpolation.utest \
-//!     --var id=42 \
-//!     --var interpolated_string=value
-//! ```
+//! - `0`: help/version, successful check, or passed suite;
+//! - `1`: a standalone test or pipeline failed;
+//! - `2`: core failed and aborted the suite;
+//! - `3`: lexical, syntax, or semantic diagnostics;
+//! - `4`: invalid CLI, configuration, or input;
+//! - `5`: internal runner or report-output failure.
 
-use std::{fs, path::PathBuf, process::ExitCode};
+#![forbid(unsafe_code)]
 
-use clap::{Parser as ClapParser, Subcommand};
-use utest_application::{CheckDiagnostic, check_source};
-use utest_parser::{SourceText, ValidationContext};
-use utest_runtime::{VariableAssignment, VariableStore};
+mod args;
+mod command;
+mod diagnostic;
+mod env_file;
+mod output;
 
-/// Exit status used when source validation reports diagnostics.
-const CHECK_FAILED_EXIT_CODE: u8 = 3;
+use std::process::ExitCode;
 
-/// Parsed top-level command-line arguments.
-#[derive(Debug, ClapParser)]
-#[command(name = "utest", version, about = "HTTP verification suite runner")]
-struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
+use clap::Parser;
 
-/// Commands exposed by the `utest` executable.
-#[derive(Debug, Subcommand)]
-enum Command {
-    /// Checks a UTest file without executing HTTP requests.
-    Check {
-        /// Path to the `.utest` source file.
-        path: PathBuf,
+use crate::{args::Cli, command::dispatch};
 
-        /// Defines a variable for semantic checking (`NAME=VALUE`).
-        #[arg(long = "var", value_name = "NAME=VALUE", value_parser = parse_variable)]
-        variables: Vec<VariableAssignment>,
-    },
-}
-
-/// Parses process arguments, dispatches the selected command, and returns its
-/// process exit status.
+/// Parses arguments without allowing Clap to terminate the process itself.
 fn main() -> ExitCode {
-    match Cli::parse().command {
-        Command::Check { path, variables } => check(path, variables),
-    }
-}
-
-/// Checks one file using CLI and environment variables as predefined names.
-///
-/// Values are retained in the runtime store while source validation receives
-/// names only. Capture declarations that collide with predefined names are
-/// rejected by semantic validation.
-fn check(path: PathBuf, variables: Vec<VariableAssignment>) -> ExitCode {
-    let content = match fs::read_to_string(&path) {
-        Ok(content) => content,
+    match Cli::try_parse() {
+        Ok(cli) => dispatch(cli),
         Err(error) => {
-            eprintln!("{}: error[io]: {error}", path.display());
-            return ExitCode::FAILURE;
+            let code = if error.use_stderr() { 4 } else { 0 };
+            let _ = error.print();
+            ExitCode::from(code)
         }
-    };
-
-    let source = SourceText::new(path.display().to_string(), content);
-    let mut variable_store = VariableStore::from_environment();
-    variable_store.apply_cli(variables);
-    let context =
-        ValidationContext::new().with_predefined_variables(variable_store.names().cloned());
-    let report = check_source(&source, &context);
-
-    if report.is_success() {
-        println!("{}: valid", source.name());
-        return ExitCode::SUCCESS;
     }
-
-    for diagnostic in &report.diagnostics {
-        render_diagnostic(&source, diagnostic);
-    }
-    ExitCode::from(CHECK_FAILED_EXIT_CODE)
-}
-
-/// Writes one compiler-style diagnostic to standard error.
-///
-/// Locations use one-based line and column numbers calculated from the
-/// diagnostic's byte span.
-fn render_diagnostic(source: &SourceText, diagnostic: &CheckDiagnostic) {
-    let location = source.location(diagnostic.span.start);
-    eprintln!(
-        "{}:{}:{}: error[{}]: {}",
-        source.name(),
-        location.line,
-        location.column,
-        diagnostic.phase().as_str(),
-        diagnostic.kind,
-    );
-}
-
-/// Validates the `NAME=VALUE` form accepted by `--var`.
-///
-/// Parsing splits at the first `=`, so values may be empty or contain `=`.
-fn parse_variable(raw: &str) -> Result<VariableAssignment, String> {
-    raw.parse::<VariableAssignment>()
-        .map_err(|error| error.to_string())
 }

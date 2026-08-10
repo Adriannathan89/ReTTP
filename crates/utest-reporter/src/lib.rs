@@ -1,14 +1,25 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Safe terminal, JSON, and JUnit reporting for UTest execution results.
+//!
+//! The reporter crate never renders [`utest_domain::SuiteResult`] directly.
+//! [`RunReport::from_suite_result`] first creates an owned, versioned report
+//! whose value-bearing assertion previews and execution messages have been
+//! strictly sanitized. Every renderer accepts only that publishable model.
+//!
+//! The crate performs no filesystem, environment, network, or process access.
+//! Callers decide where rendered UTF-8 output is written.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+mod json;
+mod junit;
+mod model;
+mod terminal;
+
+pub use json::{JsonReportError, JsonReporter};
+pub use junit::JunitReporter;
+pub use model::{
+    REPORT_SCHEMA_VERSION, ReportAssertionFailure, ReportBlock, ReportBlockKind, ReportErrorKind,
+    ReportExecutionError, ReportFailureKind, ReportStatus, ReportSummary, ReportTest, RunReport,
+};
+pub use terminal::{ColorMode, TerminalReporter};
