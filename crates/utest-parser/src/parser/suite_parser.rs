@@ -1,7 +1,8 @@
 //! Parsing and recovery at the suite root.
 //!
 //! The suite parser recognizes core, pipeline, and standalone test blocks,
-//! preserves their source order, and reports duplicate core declarations.
+//! preserves their source order, and reports empty suites and duplicate core
+//! declarations.
 
 use crate::{BlockAst, SourceSpan, SuiteAst, TokenKind};
 
@@ -43,6 +44,9 @@ impl Parser<'_> {
         } else {
             SourceSpan::new(start, start)
         };
+        if blocks.is_empty() && self.errors.is_empty() {
+            self.push_error(ParserErrorKind::EmptySuite, span);
+        }
 
         ParseResult {
             ast: SuiteAst { blocks, span },

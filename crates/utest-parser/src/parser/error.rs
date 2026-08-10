@@ -23,6 +23,10 @@ pub enum ParserErrorKind {
         expected: &'static str,
     },
 
+    /// A source file contained no executable suite block.
+    #[error("a suite must contain at least one block")]
+    EmptySuite,
+
     /// More than one top-level `core` block was declared.
     #[error("a suite may contain at most one core block")]
     DuplicateCore,

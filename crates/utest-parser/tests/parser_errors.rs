@@ -26,6 +26,10 @@ fn every_parser_error_kind_has_a_human_readable_message() {
             "expected `}`, found end of input".to_owned(),
         ),
         (
+            ParserErrorKind::EmptySuite,
+            "a suite must contain at least one block".to_owned(),
+        ),
+        (
             ParserErrorKind::DuplicateCore,
             "a suite may contain at most one core block".to_owned(),
         ),
