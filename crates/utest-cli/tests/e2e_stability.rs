@@ -3,7 +3,7 @@ use std::{
     io::{self, Read, Write},
     net::{TcpListener, TcpStream},
     path::{Path, PathBuf},
-    process::{Command, Output},
+    process::{Command, Output, Stdio},
     sync::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
@@ -48,11 +48,11 @@ enum ServerAction {
     Respond(Vec<u8>),
     Delay(Duration, Vec<u8>),
     Close,
+    HoldUntilClientCloses,
 }
 
 struct FaultServer {
     origin: String,
-    #[expect(dead_code, reason = "used by the interruption batch")]
     accepted: Receiver<usize>,
     requests: Arc<Mutex<Vec<Vec<u8>>>>,
     worker: JoinHandle<()>,
@@ -88,6 +88,15 @@ impl FaultServer {
                         write_response(&mut stream, &bytes);
                     }
                     ServerAction::Close => {}
+                    ServerAction::HoldUntilClientCloses => {
+                        let mut byte = [0_u8; 1];
+                        loop {
+                            match stream.read(&mut byte) {
+                                Ok(0) | Err(_) => break,
+                                Ok(_) => {}
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -97,6 +106,15 @@ impl FaultServer {
             requests,
             worker,
         }
+    }
+
+    fn wait_for_request(&self, expected_index: usize) {
+        assert_eq!(
+            self.accepted
+                .recv_timeout(TEST_DEADLINE)
+                .expect("request acceptance deadline"),
+            expected_index
+        );
     }
 
     fn finish(self) -> Vec<Vec<u8>> {
@@ -413,4 +431,67 @@ fn permanent_invalid_fixtures_stop_in_the_expected_checker_phase() {
         assert_eq!(output.status.code(), Some(3), "{fixture}");
         assert!(stderr(&output).contains(phase), "{fixture}");
     }
+}
+
+#[cfg(unix)]
+#[test]
+fn ctrl_c_cancels_in_flight_execution_and_preserves_artifacts() {
+    let directory = TemporaryDirectory::new();
+    let source = directory.write(
+        "interrupt.utest",
+        r#"test "waiting" { request GET "/waiting" expect { status = 200 } }
+        test "never" { request GET "/never" expect { status = 200 } }"#,
+    );
+    let json = directory.write("report.json", "existing-json");
+    let junit = directory.write("report.xml", "existing-junit");
+    let server = FaultServer::serve(vec![ServerAction::HoldUntilClientCloses]);
+
+    let mut child = command()
+        .arg("run")
+        .arg(&source)
+        .arg("--base-url")
+        .arg(&server.origin)
+        .arg("--json-file")
+        .arg(&json)
+        .arg("--junit-file")
+        .arg(&junit)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("spawn interrupted CLI");
+    server.wait_for_request(0);
+
+    let signal = Command::new("kill")
+        .arg("-INT")
+        .arg(child.id().to_string())
+        .status()
+        .expect("send SIGINT");
+    assert!(signal.success());
+
+    let deadline = Instant::now() + TEST_DEADLINE;
+    loop {
+        if child.try_wait().expect("poll child").is_some() {
+            break;
+        }
+        assert!(Instant::now() < deadline, "interrupt deadline");
+        thread::sleep(Duration::from_millis(10));
+    }
+    let output = child
+        .wait_with_output()
+        .expect("collect interrupted output");
+    assert_eq!(output.status.code(), Some(130));
+    assert!(stdout(&output).is_empty());
+    assert_eq!(
+        stderr(&output),
+        "error[interrupted]: execution interrupted by Ctrl+C\n"
+    );
+    assert_eq!(
+        fs::read_to_string(json).expect("JSON artifact"),
+        "existing-json"
+    );
+    assert_eq!(
+        fs::read_to_string(junit).expect("JUnit artifact"),
+        "existing-junit"
+    );
+    assert_eq!(server.finish().len(), 1);
 }

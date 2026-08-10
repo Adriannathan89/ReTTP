@@ -15,7 +15,9 @@ use utest_runtime::{VariableAssignment, VariableStore};
 
 use crate::{
     args::{CheckArgs, Cli, Command, RunArgs, SourceArgs},
-    diagnostic, env_file, input, output,
+    diagnostic, env_file, input,
+    interrupt::{self, InterruptOutcome},
+    output,
 };
 
 const TEST_FAILED: u8 = 1;
@@ -23,6 +25,7 @@ const CORE_ABORTED: u8 = 2;
 const CHECK_FAILED: u8 = 3;
 const INVALID_INPUT: u8 = 4;
 const INTERNAL_ERROR: u8 = 5;
+const INTERRUPTED: u8 = 130;
 
 /// Dispatches one parsed command without allowing lower layers to exit.
 pub(crate) fn dispatch(cli: Cli) -> ExitCode {
@@ -97,7 +100,20 @@ fn run(arguments: RunArgs) -> ExitCode {
         Ok(runtime) => runtime,
         Err(error) => return emit_error(INTERNAL_ERROR, "runner", &error.to_string()),
     };
-    let result = runtime.block_on(ExecutionEngine::default().execute(&suite, &variables, &client));
+    let execution = runtime.block_on(interrupt::run_until_ctrl_c(
+        ExecutionEngine::default().execute(&suite, &variables, &client),
+    ));
+    let result = match execution {
+        Ok(InterruptOutcome::Completed(result)) => result,
+        Ok(InterruptOutcome::Interrupted) => {
+            return emit_error(
+                INTERRUPTED,
+                "interrupted",
+                "execution interrupted by Ctrl+C",
+            );
+        }
+        Err(error) => return emit_error(INTERNAL_ERROR, "runner", &error.to_string()),
+    };
     emit_run_report(&source, &result, arguments.json_file, arguments.junit_file)
 }
 
