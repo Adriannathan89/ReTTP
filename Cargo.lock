@@ -1421,8 +1421,11 @@ dependencies = [
 name = "utest-application"
 version = "0.1.0"
 dependencies = [
+ "utest-assertion",
  "utest-domain",
+ "utest-http",
  "utest-parser",
+ "utest-runtime",
 ]
 
 [[package]]

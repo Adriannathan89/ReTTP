@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+utest-assertion = { path = "../utest-assertion" }
 utest-domain = { path = "../utest-domain" }
+utest-http = { path = "../utest-http" }
 utest-parser = { path = "../utest-parser" }
+utest-runtime = { path = "../utest-runtime" }
