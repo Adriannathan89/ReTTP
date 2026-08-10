@@ -2,3 +2,6 @@ TIMELINE.md
 /target
 /docs/generated/
 .agents
+/fuzz/artifacts/
+/fuzz/coverage/
+/fuzz/target/

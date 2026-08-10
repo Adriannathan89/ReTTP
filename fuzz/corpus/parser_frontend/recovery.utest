@@ -1,0 +1,10 @@
+pipeline "unfinished" {
+    test "recovery" {
+        request POST "/data/${ID}" {
+            body { nested = [{ value = "text" }] }
+        }
+        expect {
+            body {
+                result: object {
+                    id: integer -> SAVED_ID,
+                    payload: object = { ok = true

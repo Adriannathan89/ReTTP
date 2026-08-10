@@ -2,9 +2,9 @@
 
 ## Status
 
-This document is a proposal. No production or test implementation described
-here may be applied until the proposal and the complete file previews under
-`docs/generated/stability/` have been reviewed and accepted.
+This plan was reviewed, accepted, and implemented on 2026-08-10. The complete
+pre-implementation file previews remain available under
+`docs/generated/stability/` as design history.
 
 ## Objective
 
@@ -271,3 +271,12 @@ workflow is not triggered.
 - Workspace coverage remains at least 90% lines.
 - Formatting, strict Clippy, all tests, Rustdoc, dependency audit, and diff
   checks pass.
+
+## Verification Result
+
+- The stable workspace tests and both independent fuzz binaries compile.
+- The full workspace LLVM line coverage is 98.44%, above the 90% gate.
+- Formatting, workspace check, strict Clippy, Rustdoc warnings, dependency
+  audits for both lockfiles, and diff checks pass.
+- The scheduled fuzz workflow is intentionally separate from pull-request CI.
+- The release workflow was not executed during this stage.

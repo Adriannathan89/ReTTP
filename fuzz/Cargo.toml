@@ -1,0 +1,31 @@
+[package]
+name = "utest-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+utest-application = { path = "../crates/utest-application" }
+utest-parser = { path = "../crates/utest-parser" }
+
+[[bin]]
+name = "parser_frontend"
+path = "fuzz_targets/parser_frontend.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "checker"
+path = "fuzz_targets/checker.rs"
+test = false
+doc = false
+bench = false
+
+# Keep nightly-only fuzz targets outside the stable production workspace.
+[workspace]
+members = ["."]

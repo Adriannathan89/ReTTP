@@ -1,0 +1,18 @@
+core {
+    test "session" {
+        request POST "/session"
+        expect { status = 200 body { token: string -> TOKEN } }
+    }
+}
+
+pipeline "read data" {
+    test "details" {
+        request GET "/data/${TOKEN}" {
+            headers { "Authorization" = "Bearer ${TOKEN}" }
+        }
+        expect {
+            status = 200
+            body { result: object { values: array } }
+        }
+    }
+}
