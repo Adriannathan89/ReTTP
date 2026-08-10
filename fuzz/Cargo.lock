@@ -1303,7 +1303,7 @@ dependencies = [
 
 [[package]]
 name = "utest-application"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "utest-assertion",
  "utest-domain",
@@ -1314,7 +1314,7 @@ dependencies = [
 
 [[package]]
 name = "utest-assertion"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "indexmap",
@@ -1326,7 +1326,7 @@ dependencies = [
 
 [[package]]
 name = "utest-domain"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "indexmap",
  "serde",
@@ -1344,7 +1344,7 @@ dependencies = [
 
 [[package]]
 name = "utest-http"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1359,7 +1359,7 @@ dependencies = [
 
 [[package]]
 name = "utest-parser"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "indexmap",
  "thiserror",
@@ -1368,7 +1368,7 @@ dependencies = [
 
 [[package]]
 name = "utest-runtime"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "indexmap",

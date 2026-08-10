@@ -69,5 +69,5 @@ Provide `API_KEY` through the process environment or a protected env file.
   regression.
 - Preserve reports as restricted CI artifacts and apply normal retention rules.
 
-Version 0.1.0 does not provide cleanup hooks or retries. The target application
+Version 0.1.1 does not provide cleanup hooks or retries. The target application
 or deployment job must clean up test data when required.

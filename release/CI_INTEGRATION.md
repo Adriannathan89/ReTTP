@@ -20,10 +20,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Install UTest 0.1.0
+      - name: Install UTest 0.1.1
         shell: bash
         run: |
-          version=v0.1.0
+          version=v0.1.1
           repository=Adriannathan89/utest
           asset="utest-${version}-x86_64-unknown-linux-gnu.tar.gz"
           curl --fail --location --silent --show-error \
@@ -64,7 +64,7 @@ preprod-verification:
   stage: test
   timeout: 10m
   variables:
-    UTEST_VERSION: "v0.1.0"
+    UTEST_VERSION: "v0.1.1"
   before_script:
     - apt-get update && apt-get install --yes ca-certificates curl
     - export ASSET="utest-${UTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz"

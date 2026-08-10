@@ -10,8 +10,8 @@ All workspace packages must use the same version. Tag `vX.Y.Z` must exactly
 match that workspace version without the leading `v`. For the first release:
 
 ```text
-workspace version: 0.1.0
-tag:               v0.1.0
+workspace version: 0.1.1
+tag:               v0.1.1
 ```
 
 A hyphenated version tag such as `v0.2.0-rc.1` produces a GitHub pre-release.
@@ -65,8 +65,8 @@ remain the distribution channel.
 ```bash
 git switch main
 git pull --ff-only origin main
-git tag -a v0.1.0 -m "UTest 0.1.0"
-git push origin v0.1.0
+git tag -a v0.1.1 -m "UTest 0.1.1"
+git push origin v0.1.1
 ```
 
 After GitHub Actions succeeds, verify that the release contains three archives

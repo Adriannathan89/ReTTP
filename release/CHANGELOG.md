@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.1.0
+## 0.1.1
 
 Initial MVP release.
+
+The earlier `v0.1.0` tag was an unpublished release candidate that stopped
+before fuzz execution because its tool installer rejected `cargo-fuzz`. No
+binary or GitHub Release was published for that tag.
 
 ### Added
 

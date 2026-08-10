@@ -65,4 +65,4 @@ utest run user.utest \
 - Partial JSON objects allow undeclared response fields by default.
 - Captures commit only after the complete test passes.
 - Undefined variables are rejected before any network request.
-- UTest 0.1.0 has no fixture hooks, cleanup hook, retry policy, or cookie jar.
+- UTest 0.1.1 has no fixture hooks, cleanup hook, retry policy, or cookie jar.

@@ -78,7 +78,10 @@ fn top_level_help_and_version_are_successful() {
 
     let version = run(&["--version"]);
     assert_eq!(version.status.code(), Some(0));
-    assert_eq!(stdout(&version), "utest 0.1.0\n");
+    assert_eq!(
+        stdout(&version),
+        format!("utest {}\n", env!("CARGO_PKG_VERSION"))
+    );
     assert!(stderr(&version).is_empty());
 }
 
