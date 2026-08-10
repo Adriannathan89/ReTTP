@@ -1,0 +1,4 @@
+test "undefined variable" {
+    request GET "/users/${MISSING_ID}"
+    expect { status = 700 }
+}

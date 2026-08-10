@@ -1,7 +1,6 @@
 //! Command orchestration, mandatory checking, execution, and exit-code mapping.
 
 use std::{
-    fs,
     io::{self, IsTerminal, Write},
     path::PathBuf,
     process::ExitCode,
@@ -16,7 +15,7 @@ use utest_runtime::{VariableAssignment, VariableStore};
 
 use crate::{
     args::{CheckArgs, Cli, Command, RunArgs, SourceArgs},
-    diagnostic, env_file, output,
+    diagnostic, env_file, input, output,
 };
 
 const TEST_FAILED: u8 = 1;
@@ -103,7 +102,7 @@ fn run(arguments: RunArgs) -> ExitCode {
 }
 
 fn prepare_source(arguments: SourceArgs) -> Result<(SourceText, VariableStore), String> {
-    let content = fs::read_to_string(&arguments.path)
+    let content = input::read_source(&arguments.path)
         .map_err(|error| format!("{}: {error}", arguments.path.display()))?;
     let source = SourceText::new(arguments.path.display().to_string(), content);
     let mut variables = VariableStore::from_environment();

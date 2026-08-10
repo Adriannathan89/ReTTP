@@ -1,9 +1,9 @@
 //! Command-line interface for validating and executing UTest source files.
 //!
-//! `check` compiles source without network access. `run` requires a base URL,
-//! performs the same complete compiler pipeline, executes only a successfully
-//! converted suite, prints a strictly redacted terminal report, and optionally
-//! writes JSON and JUnit artifacts.
+//! `check` compiles bounded UTF-8 source without network access. `run` requires
+//! a base URL, performs the same complete compiler pipeline, executes only a
+//! successfully converted suite, prints a strictly redacted terminal report,
+//! and optionally writes JSON and JUnit artifacts.
 //!
 //! # Exit codes
 //!
@@ -20,6 +20,7 @@ mod args;
 mod command;
 mod diagnostic;
 mod env_file;
+mod input;
 mod output;
 
 use std::process::ExitCode;
