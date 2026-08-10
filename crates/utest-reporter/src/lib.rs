@@ -12,10 +12,14 @@
 #![warn(missing_docs)]
 
 mod json;
+mod junit;
 mod model;
+mod terminal;
 
 pub use json::{JsonReportError, JsonReporter};
+pub use junit::JunitReporter;
 pub use model::{
     REPORT_SCHEMA_VERSION, ReportAssertionFailure, ReportBlock, ReportBlockKind, ReportErrorKind,
     ReportExecutionError, ReportFailureKind, ReportStatus, ReportSummary, ReportTest, RunReport,
 };
+pub use terminal::{ColorMode, TerminalReporter};
