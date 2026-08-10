@@ -1488,6 +1488,12 @@ dependencies = [
 [[package]]
 name = "utest-reporter"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+ "utest-domain",
+]
 
 [[package]]
 name = "utest-runtime"
