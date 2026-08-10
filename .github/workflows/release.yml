@@ -21,9 +21,14 @@ jobs:
     name: Required CI gates
     uses: ./.github/workflows/ci.yaml
 
+  fuzz:
+    name: Required fuzz gates
+    needs: ci
+    uses: ./.github/workflows/fuzz.yaml
+
   verify-version:
     name: Verify release version
-    needs: ci
+    needs: fuzz
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

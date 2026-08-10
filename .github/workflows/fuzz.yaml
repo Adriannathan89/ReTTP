@@ -1,9 +1,7 @@
 name: Parser fuzzing
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '17 2 * * 1'
+  workflow_call:
 
 permissions:
   contents: read

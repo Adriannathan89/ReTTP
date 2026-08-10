@@ -46,9 +46,9 @@ review.
    `crates/utest-cli/tests/fixtures/{valid,invalid}`.
 9. Parser fuzzing uses `cargo-fuzz` with separate front-end and complete-checker
    targets.
-10. Fuzzing is scheduled and manually dispatchable. It is not a nondeterministic
-    blocking pull-request job. Deterministic regression inputs remain part of
-    normal blocking workspace tests.
+10. Fuzzing is a required release gate. It is not a nondeterministic blocking
+    pull-request job. Deterministic regression inputs remain part of normal
+    blocking workspace tests.
 11. Public safe APIs must not panic for any representable input unless a
     programmer-error precondition is explicitly documented.
 12. Memory validation uses static allocation review and deterministic bounded
@@ -157,12 +157,13 @@ Fuzzer inputs are capped at 64 KiB. This is intentionally below the CLI source
 limit to maximize mutation throughput while deterministic tests cover the
 5 MiB boundary.
 
-### Fuzz workflow
+### Release fuzz workflow
 
-`.github/workflows/fuzz.yaml` runs weekly and through `workflow_dispatch`. Each
-target has a finite run count, input length, per-input timeout, and job timeout.
-Crash artifacts are uploaded when a job fails. Generated artifacts, coverage,
-and fuzz build output are ignored; seed corpus remains tracked.
+`.github/workflows/fuzz.yaml` is called by the release workflow after required
+CI passes and before version verification, artifact builds, or publication.
+Each target has a finite run count, input length, per-input timeout, and job
+timeout. Crash artifacts are uploaded when a job fails. Generated artifacts,
+coverage, and fuzz build output are ignored; seed corpus remains tracked.
 
 ## Panic Review
 
@@ -230,7 +231,7 @@ is repeated.
 ### Batch 3 — Fuzzing and final stability review
 
 - add both cargo-fuzz targets and seed corpus;
-- add the scheduled/manual fuzz workflow;
+- add the reusable pre-release fuzz workflow;
 - complete production panic and memory reviews;
 - add regression tests for every confirmed issue;
 - apply only fixes represented by an accepted proposal.
@@ -254,8 +255,8 @@ cargo audit --deny warnings
 git diff --check
 ```
 
-The scheduled/manual workflow additionally runs both fuzz targets. The release
-workflow is not triggered.
+The reusable release gate additionally runs both fuzz targets. The release
+workflow is not triggered during local implementation or verification.
 
 ## Definition of Done
 
@@ -278,5 +279,6 @@ workflow is not triggered.
 - The full workspace LLVM line coverage is 98.44%, above the 90% gate.
 - Formatting, workspace check, strict Clippy, Rustdoc warnings, dependency
   audits for both lockfiles, and diff checks pass.
-- The scheduled fuzz workflow is intentionally separate from pull-request CI.
+- The reusable fuzz workflow gates releases and remains separate from
+  pull-request CI.
 - The release workflow was not executed during this stage.
