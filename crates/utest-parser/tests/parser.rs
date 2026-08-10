@@ -20,16 +20,35 @@ fn error_kinds(result: &utest_parser::ParseResult) -> Vec<&ParserErrorKind> {
 }
 
 #[test]
-fn parses_empty_input_with_or_without_an_eof_token() {
+fn rejects_empty_input_with_or_without_an_eof_token() {
     let lexed = parse_source("");
-    assert!(lexed.is_success());
-    assert!(!lexed.has_errors());
+    assert!(!lexed.is_success());
+    assert!(lexed.has_errors());
+    assert_eq!(lexed.errors.len(), 1);
+    assert_eq!(lexed.errors[0].kind, ParserErrorKind::EmptySuite);
+    assert_eq!(lexed.errors[0].span, SourceSpan::new(0, 0));
     assert!(lexed.ast.blocks.is_empty());
     assert_eq!(lexed.ast.span, SourceSpan::new(0, 0));
 
     let no_tokens = Parser::new(&[]).parse();
-    assert!(no_tokens.is_success());
+    assert!(!no_tokens.is_success());
+    assert_eq!(no_tokens.errors.len(), 1);
+    assert_eq!(no_tokens.errors[0].kind, ParserErrorKind::EmptySuite);
+    assert_eq!(no_tokens.errors[0].span, SourceSpan::new(0, 0));
     assert_eq!(no_tokens.ast.span, SourceSpan::new(0, 0));
+}
+
+#[test]
+fn invalid_top_level_input_does_not_duplicate_the_error_with_empty_suite() {
+    let result = parse_source("garbage");
+
+    assert_eq!(result.errors.len(), 1);
+    assert!(matches!(
+        result.errors[0].kind,
+        ParserErrorKind::UnexpectedToken { .. }
+    ));
+    assert!(result.ast.blocks.is_empty());
+    assert!(!error_kinds(&result).contains(&&ParserErrorKind::EmptySuite));
 }
 
 #[test]

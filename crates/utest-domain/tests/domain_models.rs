@@ -252,8 +252,9 @@ fn results_and_errors_represent_all_outcomes() {
         skipped.error.unwrap().kind,
         ExecutionErrorKind::DependencyFailed
     );
-    let aborted = TestResult::aborted("stop", "internal failure");
+    let aborted = TestResult::aborted("stop", 7, "internal failure");
     assert_eq!(aborted.status, ExecutionStatus::Aborted);
+    assert_eq!(aborted.duration_ms, 7);
     assert_eq!(aborted.error.unwrap().kind, ExecutionErrorKind::Internal);
     let failure = AssertionFailure {
         path: "$.id".into(),
@@ -284,6 +285,7 @@ fn results_and_errors_represent_all_outcomes() {
     ];
     assert_eq!(failure_kinds.len(), 7);
     let error_kinds = [
+        ExecutionErrorKind::InvalidRequest,
         ExecutionErrorKind::Connection,
         ExecutionErrorKind::Timeout,
         ExecutionErrorKind::InvalidResponse,
@@ -291,14 +293,16 @@ fn results_and_errors_represent_all_outcomes() {
         ExecutionErrorKind::DependencyFailed,
         ExecutionErrorKind::Internal,
     ];
-    assert_eq!(error_kinds.len(), 6);
+    assert_eq!(error_kinds.len(), 7);
     assert_eq!(
         BlockResult::Core(CoreResult {
             status: ExecutionStatus::Passed,
+            duration_ms: 12,
             tests: vec![passed]
         }),
         BlockResult::Core(CoreResult {
             status: ExecutionStatus::Passed,
+            duration_ms: 12,
             tests: vec![TestResult::passed("ok", 12)]
         })
     );
@@ -306,12 +310,14 @@ fn results_and_errors_represent_all_outcomes() {
         BlockResult::Pipeline(PipelineResult {
             name: "p".into(),
             status: ExecutionStatus::Skipped,
-            cores: vec![]
+            duration_ms: 0,
+            tests: vec![]
         }),
         BlockResult::Pipeline(PipelineResult {
             name: "p".into(),
             status: ExecutionStatus::Skipped,
-            cores: vec![]
+            duration_ms: 0,
+            tests: vec![]
         })
     );
     assert_eq!(BlockResult::Test(failed.clone()), BlockResult::Test(failed));
@@ -353,4 +359,52 @@ fn public_models_round_trip_through_json() {
     let decoded: TestSuite = serde_json::from_str(&json).unwrap();
     assert_eq!(decoded.name.as_deref(), Some("round trip"));
     assert_eq!(decoded.len(), 1);
+}
+
+#[test]
+fn suite_results_round_trip_through_json_with_source_order_and_error_details() {
+    let assertion_failure = AssertionFailure {
+        path: "$.id".into(),
+        kind: AssertionFailureKind::TypeMismatch,
+        expected: Some("integer".into()),
+        actual: Some("string".into()),
+        message: "expected integer".into(),
+    };
+    let execution_error = ExecutionErrorInfo {
+        kind: ExecutionErrorKind::InvalidRequest,
+        message: "invalid request".into(),
+    };
+    let result = SuiteResult {
+        name: Some("API".into()),
+        status: ExecutionStatus::Failed,
+        duration_ms: 31,
+        blocks: vec![
+            BlockResult::Core(CoreResult {
+                status: ExecutionStatus::Passed,
+                duration_ms: 10,
+                tests: vec![TestResult::passed("bootstrap", 10)],
+            }),
+            BlockResult::Pipeline(PipelineResult {
+                name: "flow".into(),
+                status: ExecutionStatus::Failed,
+                duration_ms: 20,
+                tests: vec![TestResult::failed(
+                    "step",
+                    20,
+                    vec![assertion_failure],
+                    Some(execution_error.clone()),
+                )],
+            }),
+            BlockResult::Test(TestResult::skipped("later", "dependency failed")),
+        ],
+        error: Some(execution_error),
+    };
+
+    let json = serde_json::to_string(&result).unwrap();
+    let decoded: SuiteResult = serde_json::from_str(&json).unwrap();
+
+    assert_eq!(decoded, result);
+    assert!(matches!(decoded.blocks[0], BlockResult::Core(_)));
+    assert!(matches!(decoded.blocks[1], BlockResult::Pipeline(_)));
+    assert!(matches!(decoded.blocks[2], BlockResult::Test(_)));
 }
