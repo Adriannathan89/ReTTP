@@ -1,0 +1,5 @@
+test "lexical" {
+    request GET "/health"
+    expect { status = 200 }
+}
+@

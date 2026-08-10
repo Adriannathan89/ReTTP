@@ -1,0 +1,5 @@
+pipeline "broken" {
+    test "missing expectation" {
+        request GET "/health"
+    }
+}

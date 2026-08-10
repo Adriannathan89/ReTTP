@@ -1,7 +1,6 @@
 //! Command orchestration, mandatory checking, execution, and exit-code mapping.
 
 use std::{
-    fs,
     io::{self, IsTerminal, Write},
     path::PathBuf,
     process::ExitCode,
@@ -16,7 +15,9 @@ use utest_runtime::{VariableAssignment, VariableStore};
 
 use crate::{
     args::{CheckArgs, Cli, Command, RunArgs, SourceArgs},
-    diagnostic, env_file, output,
+    diagnostic, env_file, input,
+    interrupt::{self, InterruptOutcome},
+    output,
 };
 
 const TEST_FAILED: u8 = 1;
@@ -24,6 +25,7 @@ const CORE_ABORTED: u8 = 2;
 const CHECK_FAILED: u8 = 3;
 const INVALID_INPUT: u8 = 4;
 const INTERNAL_ERROR: u8 = 5;
+const INTERRUPTED: u8 = 130;
 
 /// Dispatches one parsed command without allowing lower layers to exit.
 pub(crate) fn dispatch(cli: Cli) -> ExitCode {
@@ -98,12 +100,25 @@ fn run(arguments: RunArgs) -> ExitCode {
         Ok(runtime) => runtime,
         Err(error) => return emit_error(INTERNAL_ERROR, "runner", &error.to_string()),
     };
-    let result = runtime.block_on(ExecutionEngine::default().execute(&suite, &variables, &client));
+    let execution = runtime.block_on(interrupt::run_until_ctrl_c(
+        ExecutionEngine::default().execute(&suite, &variables, &client),
+    ));
+    let result = match execution {
+        Ok(InterruptOutcome::Completed(result)) => result,
+        Ok(InterruptOutcome::Interrupted) => {
+            return emit_error(
+                INTERRUPTED,
+                "interrupted",
+                "execution interrupted by Ctrl+C",
+            );
+        }
+        Err(error) => return emit_error(INTERNAL_ERROR, "runner", &error.to_string()),
+    };
     emit_run_report(&source, &result, arguments.json_file, arguments.junit_file)
 }
 
 fn prepare_source(arguments: SourceArgs) -> Result<(SourceText, VariableStore), String> {
-    let content = fs::read_to_string(&arguments.path)
+    let content = input::read_source(&arguments.path)
         .map_err(|error| format!("{}: {error}", arguments.path.display()))?;
     let source = SourceText::new(arguments.path.display().to_string(), content);
     let mut variables = VariableStore::from_environment();

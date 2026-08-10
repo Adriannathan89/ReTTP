@@ -1,0 +1,37 @@
+core {
+    test "create session" {
+        request POST "/session"
+        expect {
+            status = 200
+            body { token: string -> TOKEN }
+        }
+    }
+}
+
+pipeline "data flow" {
+    test "create data" {
+        request POST "/data" {
+            headers { "Authorization" = "Bearer ${TOKEN}" }
+            body { name = "sample" }
+        }
+        expect {
+            status = 201
+            body { id: integer -> DATA_ID }
+        }
+    }
+
+    test "read data" {
+        request GET "/data/${DATA_ID}" {
+            headers { "Authorization" = "Bearer ${TOKEN}" }
+        }
+        expect {
+            status = 200
+            body { id: integer = 42, name: string = "sample" }
+        }
+    }
+}
+
+test "health" {
+    request GET "/health/${TOKEN}"
+    expect { status = 204 body empty }
+}
