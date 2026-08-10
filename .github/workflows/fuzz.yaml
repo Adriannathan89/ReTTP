@@ -17,7 +17,7 @@ env:
 jobs:
   fuzz:
     name: Fuzz ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -26,10 +26,15 @@ jobs:
           - parser_frontend
           - checker
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: taiki-e/install-action@cargo-fuzz
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb # nightly
+        with:
+          toolchain: nightly-2026-08-01
+      - uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2
+        with:
+          tool: cargo-fuzz
+          fallback: none
+      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
         with:
           workspaces: fuzz -> target
       - name: Run bounded fuzz campaign
@@ -37,7 +42,7 @@ jobs:
         run: cargo fuzz run "${{ matrix.target }}" -- -runs=50000 -max_len=65536 -timeout=5
       - name: Upload crash artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: fuzz-${{ matrix.target }}-artifacts
           path: fuzz/artifacts/${{ matrix.target }}/
