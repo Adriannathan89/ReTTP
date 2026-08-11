@@ -385,6 +385,40 @@ The release workflow runs CI, bounded parser/checker fuzzing, version
 validation, native smoke-tested builds, checksum generation, and GitHub Release
 publication.
 
+## Benchmark
+
+The following is a local baseline, measured on 11 August 2026
+with the released `utest 0.1.1` Linux x86-64 binary. The host was an AMD Ryzen
+5 6600H (Linux 7.0.0-28-generic). CPU affinity pinned the benchmark controller,
+the UTest processes, and the loopback server to one logical CPU (CPU 0).
+
+The workload was [`a.utest`](a.utest): each successful suite invocation makes
+four small JSON HTTP requests—health, login, authenticated data, and
+unauthenticated data. The server listened only on `127.0.0.1`, held all
+responses in memory, and performed no TLS, database, disk I/O, delay, or report
+file output. Every table entry contains 20 suite invocations (80 HTTP requests)
+after five warm-up invocations.
+
+| Concurrent UTest processes | Throughput (requests/s) | Suite p50 | Suite p95 |
+|---:|---:|---:|---:|
+| 1 | 348.5 | 11.19 ms | 11.63 ms |
+| 2 | 361.9 | 21.85 ms | 24.06 ms |
+| 4 | 354.8 | 43.22 ms | 56.76 ms |
+| 8 | 73.6 | 63.36 ms | 1,074.96 ms |
+| 12 | 68.2 | 109.02 ms | 1,161.58 ms |
+
+The highest observed throughput was **369.3 requests/s** with two concurrent
+UTest processes; the table records a 361.9 requests/s sample at that level.
+Repeating that level produced 354.6–369.3 requests/s. More
+processes did not increase capacity: under the intentionally shared one-core
+budget, the single-threaded loopback server and client processes contend for
+the same CPU, increasing queueing and tail latency.
+
+These numbers are a regression baseline for this exact binary, machine, suite,
+and local server—not a production-service or internet-performance guarantee.
+Real capacity depends on payload size, TLS, network latency, response bodies,
+assertion complexity, remote service behavior, and reporting configuration.
+
 ## Architecture
 
 ```text
