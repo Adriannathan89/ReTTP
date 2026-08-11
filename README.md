@@ -1,0 +1,437 @@
+# UTest
+
+[![CI](https://github.com/Adriannathan89/utest/actions/workflows/ci.yaml/badge.svg)](https://github.com/Adriannathan89/utest/actions/workflows/ci.yaml)
+[![Release](https://img.shields.io/github/v/release/Adriannathan89/utest?display_name=tag)](https://github.com/Adriannathan89/utest/releases)
+
+UTest is a command-line HTTP verification runner for post-deployment and
+pre-production checks. A compact UTF-8 `.utest` suite describes HTTP requests,
+response assertions, sequential pipelines, typed captures, and variable
+interpolation without coupling the suite to an application language or test
+framework.
+
+The current published MVP is **v0.1.1**.
+
+## What it provides
+
+- `utest check` validates a suite without creating an HTTP client or sending a
+  network request.
+- `utest run` validates first and executes only a valid suite.
+- HTTP(S) requests with relative paths, headers, query parameters, JSON object
+  bodies, timeouts, and redirect rejection.
+- `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
+- Status, header, text, empty-body, JSON type/value, nested, partial-object,
+  exact top-level object, and array assertions.
+- Predefined variables, interpolation, and typed response capture.
+- Core fail-fast, sequential pipeline fail-fast, standalone-test continuation,
+  Ctrl+C cancellation, and deterministic results.
+- Terminal output plus redacted JSON and JUnit XML reports.
+- Bounded source, response, interpolation, and nesting processing.
+- Strict CI, dependency audit, coverage gate, bounded fuzzing, native release
+  binaries, and SHA-256 checksums.
+
+UTest verifies a real deployed endpoint. It is not a load-testing tool and does
+not replace unit or component tests.
+
+## Install
+
+Download the matching archive and `SHA256SUMS` from the
+[GitHub Releases page](https://github.com/Adriannathan89/utest/releases).
+
+### Linux x86-64
+
+```bash
+curl -LO https://github.com/Adriannathan89/utest/releases/download/v0.1.1/utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/Adriannathan89/utest/releases/download/v0.1.1/SHA256SUMS
+grep 'utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz$' SHA256SUMS | sha256sum --check
+tar -xzf utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz
+sudo install -m 0755 utest /usr/local/bin/utest
+utest --version
+```
+
+Expected output:
+
+```text
+utest 0.1.1
+```
+
+| Platform | Architecture | Asset |
+|---|---:|---|
+| Linux (glibc) | x86-64 | `utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz` |
+| Windows | x86-64 | `utest-v0.1.1-x86_64-pc-windows-msvc.zip` |
+| macOS | Apple Silicon | `utest-v0.1.1-aarch64-apple-darwin.tar.gz` |
+
+The [installation guide](release/INSTALLATION.md) covers Windows, macOS,
+checksum verification, source builds, and platform caveats.
+
+## Quick start
+
+Create `health.utest`:
+
+```utest
+test "health endpoint" {
+    request GET "/health"
+    expect {
+        status = 200
+        body empty
+    }
+}
+```
+
+Validate it without network access:
+
+```bash
+utest check health.utest
+```
+
+Run it against an application:
+
+```bash
+utest run health.utest --base-url http://localhost:3000
+```
+
+`--base-url` is required for `run`. It must be an HTTP(S) URL; DSL request paths
+are relative to it, and redirects are not followed.
+
+## Complete suite example
+
+This suite authenticates in `core`, captures a token, runs a dependent pipeline,
+and keeps a health check independent:
+
+```utest
+core {
+    test "create session" {
+        request POST "/session" {
+            headers { "X-API-Key" = "${API_KEY}" }
+            body { username = "verification" }
+        }
+        expect {
+            status = 200
+            body { token: string -> SESSION_TOKEN }
+        }
+    }
+}
+
+pipeline "item lifecycle" {
+    test "create item" {
+        request POST "/items" {
+            headers { "Authorization" = "Bearer ${SESSION_TOKEN}" }
+            query { notify = false }
+            body { name = "preprod item", count = 1 }
+        }
+        expect {
+            status = 201
+            headers { "Content-Type" contains "application/json" }
+            body { id: integer -> ITEM_ID, name: string = "preprod item" }
+        }
+    }
+
+    test "read item" {
+        request GET "/items/${ITEM_ID}" {
+            headers { "Authorization" = "Bearer ${SESSION_TOKEN}" }
+        }
+        expect {
+            status = 200
+            body {
+                id: integer
+                name: string = "preprod item"
+                active: boolean = true
+            }
+        }
+    }
+}
+
+test "health" {
+    request GET "/health"
+    expect { status = 204 body empty }
+}
+```
+
+Run it with a secret supplied by the environment:
+
+```bash
+API_KEY=example-value \
+utest run preprod.utest \
+  --base-url https://preprod.example.com \
+  --junit-file reports/utest.xml \
+  --json-file reports/utest.json
+```
+
+Use a CI secret store in real environments. Do not commit sensitive values in a
+suite, dotenv file, or shell history.
+
+## Commands
+
+```text
+utest check [OPTIONS] <PATH>
+utest run [OPTIONS] --base-url <URL> <PATH>
+```
+
+| Option | Applies to | Description |
+|---|---|---|
+| `--base-url <URL>` | `run` | Required HTTP(S) base URL. |
+| `--timeout <DURATION>` | `run` | Default timeout, such as `500ms`, `30s`, or `2m`. |
+| `--env-file <FILE>` | both | UTF-8 dotenv-compatible file. |
+| `--var <NAME=VALUE>` | both | Predefined variable; later occurrences win. |
+| `--json-file <FILE>` | `run` | Write a redacted JSON report atomically. |
+| `--junit-file <FILE>` | `run` | Write a redacted JUnit XML report atomically. |
+
+Variable precedence is:
+
+```text
+process environment < --env-file < --var
+```
+
+For example:
+
+```bash
+utest run suite.utest \
+  --base-url https://preprod.example.com \
+  --env-file .env.preprod \
+  --var RESOURCE_ID=42
+```
+
+Assignments split on the first `=`, so values may contain `=`. The full
+[CLI reference](release/CLI_REFERENCE.md) documents dotenv syntax, duration
+validation, input limits, and report-output behavior.
+
+## Language overview
+
+### Requests and values
+
+Requests support quoted paths, headers, query parameters, and JSON object
+bodies. Request bodies are permitted only for `POST`, `PUT`, and `PATCH`.
+
+```utest
+request PATCH "/users/${USER_ID}" {
+    headers { "Authorization" = "Bearer ${TOKEN}" }
+    query { verbose = true }
+    body {
+        name = "Ada"
+        score = 1.5
+        tags = ["preprod", "api"]
+        metadata = { source = "utest" }
+    }
+}
+```
+
+Values can be strings, signed integers, finite decimal numbers, booleans,
+`null`, arrays, and objects. Headers and query values must resolve to strings,
+booleans, integers, or finite numbers. `null`, arrays, and objects are rejected
+there.
+
+### Response assertions
+
+An `expect` block can contain status, header, and body assertions:
+
+```utest
+expect {
+    status = 200
+    headers {
+        "Content-Type": string
+        "Cache-Control" contains "no-cache"
+    }
+    body {
+        id: integer
+        score: number = 1
+        profile: object { display_name: string }
+    }
+}
+```
+
+Object assertions are partial by default: undeclared response fields are
+allowed. `body exact { ... }` rejects undeclared top-level fields. Nested object
+assertions remain partial. Arrays compare their length and ordered values; under
+the `number` type, `1` and `1.0` compare equal.
+
+Text and empty body forms are also supported:
+
+```utest
+expect { body = "ready" }
+expect { body contains "ready" }
+expect { body empty }
+```
+
+### Variables and captures
+
+Placeholders use `${NAME}`. Captures require a declared field type:
+
+```utest
+expect {
+    body {
+        token: string -> TOKEN
+        profile: object -> PROFILE
+        roles: array -> ROLES
+    }
+}
+```
+
+Captures commit only after every assertion in their test passes:
+
+- Core captures are visible to every later block.
+- Pipeline captures are visible only to later tests in that pipeline.
+- Standalone captures are discarded after their test.
+- Object and array captures may be reused as complete values only in JSON
+  request bodies, never in paths, headers, query values, or mixed strings.
+
+Undefined, malformed, forward, or cross-pipeline references are semantic errors
+and prevent every network request in the suite.
+
+Read the complete [language reference](release/LANGUAGE_REFERENCE.md) for the
+full grammar and assertion semantics.
+
+## Execution behavior
+
+UTest always checks before it runs:
+
+```text
+check source
+  -> resolve semantic variable scopes
+  -> execute core first
+  -> execute pipelines and standalone tests in source order
+  -> render terminal and optional reports
+```
+
+- The optional core runs first even if declared later in the source.
+- A core failure aborts the suite and skips remaining blocks.
+- A pipeline stops at its first failed test and skips its remaining tests; later
+  pipelines and standalone blocks still run.
+- A failed standalone test does not stop later standalone tests.
+- Ctrl+C cancels in-flight execution, writes no new reports, and exits 130.
+
+## Exit codes
+
+| Code | Meaning |
+|---:|---|
+| `0` | The suite passed, or checking found no diagnostics. |
+| `1` | A standalone test or pipeline failed. |
+| `2` | The core failed and the suite was aborted. |
+| `3` | Lexical, syntax, or semantic validation failed. |
+| `4` | CLI, source input, dotenv, or HTTP configuration was invalid. |
+| `5` | An internal runner or report-output failure occurred. |
+| `130` | The process was interrupted with Ctrl+C. |
+
+## Reports and sensitive values
+
+Use report files for CI:
+
+```bash
+utest run suite.utest \
+  --base-url https://preprod.example.com \
+  --json-file reports/utest.json \
+  --junit-file reports/utest.xml
+```
+
+Reports are written atomically. When checking fails or the process is
+interrupted, UTest does not publish new reports and preserves existing files.
+
+UTest redacts value-bearing domain data in terminal, JSON, and JUnit reporting.
+Reports and CI logs should still be treated as sensitive operational artifacts.
+
+## CI/CD usage
+
+UTest works as a deployment gate. A CI job should install a pinned binary,
+verify its checksum, then preserve reports even on failure:
+
+```yaml
+- name: Run pre-production verification
+  env:
+    API_TOKEN: ${{ secrets.PREPROD_API_TOKEN }}
+  run: |
+    utest run tests/preprod.utest \
+      --base-url "${{ vars.PREPROD_BASE_URL }}" \
+      --junit-file reports/utest.xml \
+      --json-file reports/utest.json
+```
+
+The [CI integration guide](release/CI_INTEGRATION.md) contains complete GitHub
+Actions and GitLab CI examples, including verified installation.
+
+## Updating
+
+UTest v0.1.1 has no `utest self-update` command yet. Download the newer release
+asset, verify its checksum, extract it, and replace the installed binary:
+
+```bash
+tar -xzf utest-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz
+sudo install -m 0755 utest /usr/local/bin/utest
+utest --version
+```
+
+Each update is a new SemVer version and GitHub Release. Existing release tags
+are never overwritten.
+
+## Development
+
+UTest is a Rust workspace. Build it with Rust 1.96.0:
+
+```bash
+cargo build --release --locked --package utest-cli
+./target/release/utest --version
+```
+
+The local quality gates are:
+
+```bash
+cargo fmt --all -- --check
+cargo check --workspace --all-targets --all-features --locked
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+cargo test --workspace --all-targets --all-features --locked
+cargo llvm-cov --workspace --all-targets --all-features --locked --fail-under-lines 90
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps --locked
+cargo check --manifest-path fuzz/Cargo.toml --bins --locked
+```
+
+The release workflow runs CI, bounded parser/checker fuzzing, version
+validation, native smoke-tested builds, checksum generation, and GitHub Release
+publication.
+
+## Architecture
+
+```text
+.utest source
+  -> lexer and parser
+  -> semantic validation and domain conversion
+  -> runtime interpolation and request resolution
+  -> HTTP adapter
+  -> assertion engine and captures
+  -> execution results
+  -> terminal, JSON, and JUnit reporters
+```
+
+| Crate | Responsibility |
+|---|---|
+| `utest-domain` | Transport-independent suite, request, assertion, value, variable, and result types. |
+| `utest-parser` | Source spans, lexer, parser AST, semantic validation, and domain conversion. |
+| `utest-runtime` | Immutable variables, interpolation, request resolution, and capture commit. |
+| `utest-http` | HTTP client port, URL configuration, reqwest adapter, and bounded responses. |
+| `utest-assertion` | Response comparison and bounded structured failures. |
+| `utest-application` | Checker facade and sequential execution orchestration. |
+| `utest-reporter` | Redacted terminal, JSON, and JUnit renderers. |
+| `utest-cli` | Commands, source/env loading, output publication, and interrupts. |
+
+## Limits and non-goals for v0.1.1
+
+- Release binaries support Linux x86-64 glibc, Windows x86-64, and macOS Apple
+  Silicon only.
+- The macOS and Windows binaries are not code-signed; macOS is not notarized.
+- Requests run sequentially; independent tests are not parallelized.
+- No retries, eventual assertions, cookies, multipart, form DSL, cleanup hooks,
+  suite filtering, tags, or per-test timeout syntax.
+- No automatic self-update or package-manager distribution.
+
+## Documentation
+
+- [Installation and integrity verification](release/INSTALLATION.md)
+- [Language reference](release/LANGUAGE_REFERENCE.md)
+- [CLI reference](release/CLI_REFERENCE.md)
+- [CI integration](release/CI_INTEGRATION.md)
+- [Pre-production guide](release/PREPROD_GUIDE.md)
+- [Migration guide](release/MIGRATION_GUIDE.md)
+- [Changelog](release/CHANGELOG.md)
+- [Release process](release/RELEASE_PROCESS.md)
+- [Architecture notes](ARCHITECURE.md)
+
+## License
+
+No license has been declared for this repository. Contact the repository owner
+before redistributing, modifying, or incorporating UTest into another project.
