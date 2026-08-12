@@ -1,6 +1,6 @@
-# Migrating Native HTTP Checks to UTest
+# Migrating Native HTTP Checks to Rettp
 
-UTest complements unit and component tests. Migrate only the portable HTTP
+Rettp complements unit and component tests. Migrate only the portable HTTP
 verification layer that should run after deployment; keep application-internal
 fixtures and white-box assertions in the native framework.
 
@@ -21,9 +21,9 @@ assert_eq!(body.id, user_id);
 assert!(body.active);
 ```
 
-## Equivalent UTest suite
+## Equivalent Rettp suite
 
-```utest
+```rettp
 test "read active user" {
     request GET "/users/${USER_ID}" {
         headers { "Authorization" = "Bearer ${TOKEN}" }
@@ -39,7 +39,7 @@ test "read active user" {
 ```
 
 ```bash
-utest run user.utest \
+rettp run user.rttp \
   --base-url https://preprod.example.com \
   --var USER_ID=42 \
   --var TOKEN="$TOKEN"
@@ -53,16 +53,16 @@ utest run user.utest \
    assertions; avoid duplicating implementation details.
 4. Move prerequisite authentication or setup requests into the core.
 5. Group dependent requests into pipelines and capture typed response fields.
-6. Run `utest check` before pointing the suite at any environment.
-7. Compare UTest and native test results during a trial period.
+6. Run `rettp check` before pointing the suite at any environment.
+7. Compare Rettp and native test results during a trial period.
 8. Remove the native post-deployment check only after the portable suite is
    stable; retain lower-level native tests.
 
 ## Semantic differences
 
-- UTest pipelines are sequential and fail fast.
+- Rettp pipelines are sequential and fail fast.
 - A core failure aborts the entire suite.
 - Partial JSON objects allow undeclared response fields by default.
 - Captures commit only after the complete test passes.
 - Undefined variables are rejected before any network request.
-- UTest 0.1.1 has no fixture hooks, cleanup hook, retry policy, or cookie jar.
+- Rettp 0.1.0 has no fixture hooks, cleanup hook, retry policy, or cookie jar.

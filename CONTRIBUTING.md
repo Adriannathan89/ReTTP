@@ -1,6 +1,6 @@
-# Contributing to UTest
+# Contributing to Rettp
 
-Thank you for improving UTest. Contributions that make HTTP verification more
+Thank you for improving Rettp. Contributions that make HTTP verification more
 reliable, understandable, and safe are welcome.
 
 ## Before you begin
@@ -15,12 +15,12 @@ can normally be submitted directly as a pull request.
 
 ## Development setup
 
-UTest is a Rust workspace. Install Rust **1.96.0** and use a supported Linux,
+Rettp is a Rust workspace. Install Rust **1.96.0** and use a supported Linux,
 macOS, or Windows development environment.
 
 ```bash
-git clone https://github.com/Adriannathan89/utest.git
-cd utest
+git clone https://github.com/Adriannathan89/rettp.git
+cd rettp
 cargo build --workspace --locked
 cargo test --workspace --all-targets --all-features --locked
 ```
@@ -28,7 +28,7 @@ cargo test --workspace --all-targets --all-features --locked
 Run the CLI from the workspace during development:
 
 ```bash
-cargo run --locked --package utest-cli -- --help
+cargo run --locked --package rettp-cli -- --help
 ```
 
 The HTTP integration tests use loopback listeners. Ensure that the local
@@ -38,14 +38,14 @@ environment permits binding to `127.0.0.1`.
 
 | Area | Purpose |
 |---|---|
-| `crates/utest-domain` | Transport-independent domain types. |
-| `crates/utest-parser` | Source spans, lexer, parser, semantic validation, and domain conversion. |
-| `crates/utest-runtime` | Variables, interpolation, request resolution, and captures. |
-| `crates/utest-http` | HTTP port, configuration, reqwest adapter, and response bounds. |
-| `crates/utest-assertion` | Response assertion engine and failure diagnostics. |
-| `crates/utest-application` | Checking and sequential suite execution. |
-| `crates/utest-reporter` | Terminal, JSON, and JUnit reporting. |
-| `crates/utest-cli` | Command-line interface, input loading, and report publication. |
+| `crates/rettp-domain` | Transport-independent domain types. |
+| `crates/rettp-parser` | Source spans, lexer, parser, semantic validation, and domain conversion. |
+| `crates/rettp-runtime` | Variables, interpolation, request resolution, and captures. |
+| `crates/rettp-http` | HTTP port, configuration, reqwest adapter, and response bounds. |
+| `crates/rettp-assertion` | Response assertion engine and failure diagnostics. |
+| `crates/rettp-application` | Checking and sequential suite execution. |
+| `crates/rettp-reporter` | Terminal, JSON, and JUnit reporting. |
+| `crates/rettp-cli` | Command-line interface, input loading, and report publication. |
 | `fuzz` | Parser and checker fuzz targets. |
 | `release` | User-facing release documentation. |
 
@@ -82,7 +82,7 @@ report pass.
 
 ## Code and documentation standards
 
-- UTest forbids `unsafe` code. Preserve memory bounds, depth limits, and
+- Rettp forbids `unsafe` code. Preserve memory bounds, depth limits, and
   deterministic ordering when changing parsers, interpolation, HTTP handling,
   captures, assertions, or reporting.
 - Treat request and response values as sensitive. Diagnostics and reports must

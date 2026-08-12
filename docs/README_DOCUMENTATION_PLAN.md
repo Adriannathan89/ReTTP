@@ -3,7 +3,7 @@
 ## Objective
 
 Add an English root-level `README.md` that acts as the single project entry
-point for UTest 0.1.1. It will be useful both to a first-time user on GitHub
+point for Rettp 0.1.0. It will be useful both to a first-time user on GitHub
 and to a CI/CD maintainer adopting the runner.
 
 ## Scope

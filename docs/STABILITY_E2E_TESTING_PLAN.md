@@ -11,7 +11,7 @@ pre-implementation file previews remain available under
 Week 11 hardens the complete MVP path built during Weeks 1–10:
 
 ```text
-.utest source
+.rttp source
   -> bounded UTF-8 input
   -> lex / parse / validate / convert
   -> variable resolution
@@ -28,7 +28,7 @@ review.
 
 ## Accepted Decisions
 
-1. `utest run` requires a successful checker result before configuration,
+1. `rettp run` requires a successful checker result before configuration,
    runtime construction, or network access.
 2. The E2E server binds only to an ephemeral loopback address and has no
    external network dependency.
@@ -37,13 +37,13 @@ review.
 4. An interrupted run exits with conventional process code `130`.
 5. Interruption emits one value-free diagnostic to stderr. It does not emit a
    terminal suite report and does not create or replace JSON/JUnit artifacts.
-6. `utest check` is not made interrupt-aware because it is synchronous,
+6. `rettp check` is not made interrupt-aware because it is synchronous,
    bounded, and performs no network access.
-7. A `.utest` source file is limited to 5 MiB. The reader retains at most the
+7. A `.rttp` source file is limited to 5 MiB. The reader retains at most the
    limit plus one sentinel byte and rejects larger input with exit code `4`
    before lexing.
 8. Regression fixtures are checked in below
-   `crates/utest-cli/tests/fixtures/{valid,invalid}`.
+   `crates/rettp-cli/tests/fixtures/{valid,invalid}`.
 9. Parser fuzzing uses `cargo-fuzz` with separate front-end and complete-checker
    targets.
 10. Fuzzing is a required release gate. It is not a nondeterministic blocking

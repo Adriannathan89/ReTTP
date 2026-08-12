@@ -1,15 +1,15 @@
-# UTest — Codex Handoff: Lexer Phase
+# Rettp — Codex Handoff: Lexer Phase
 
 ## 0. Tujuan dokumen
 
-Dokumen ini adalah handoff lengkap untuk melanjutkan pengembangan **UTest**, sebuah universal HTTP test DSL dan runner berbasis Rust.
+Dokumen ini adalah handoff lengkap untuk melanjutkan pengembangan **Rettp**, sebuah universal HTTP test DSL dan runner berbasis Rust.
 
 Codex harus menggunakan dokumen ini sebagai **reference specification**, bukan langsung menimpa implementasi lokal.
 
 ### Tugas pertama Codex
 
 1. Baca implementasi lokal project terlebih dahulu.
-2. Bandingkan implementasi lokal `utest-parser` dengan spesifikasi dan reference implementation di dokumen ini.
+2. Bandingkan implementasi lokal `rettp-parser` dengan spesifikasi dan reference implementation di dokumen ini.
 3. Jangan melakukan rewrite besar jika implementasi lokal sudah benar.
 4. Identifikasi bug, ketidaksesuaian semantics, missing token, kesalahan UTF-8 boundary, error recovery yang salah, source span yang salah, dan public API yang tidak konsisten.
 5. Jalankan atau tambahkan unit test untuk lexer.
@@ -18,9 +18,9 @@ Codex harus menggunakan dokumen ini sebagai **reference specification**, bukan l
 
 ```bash
 cargo fmt --all
-cargo check -p utest-parser
-cargo test -p utest-parser
-cargo clippy -p utest-parser --all-targets -- -D warnings
+cargo check -p rettp-parser
+cargo test -p rettp-parser
+cargo clippy -p rettp-parser --all-targets -- -D warnings
 ```
 
 8. Setelah selesai, laporkan file yang diubah, bug yang ditemukan, unit test yang ditambahkan, behavior yang divalidasi, serta command verification dan hasilnya.
@@ -29,7 +29,7 @@ cargo clippy -p utest-parser --all-targets -- -D warnings
 
 # 1. Product Context
 
-UTest adalah DSL deklaratif untuk melakukan HTTP testing terhadap aplikasi yang sudah berjalan.
+Rettp adalah DSL deklaratif untuk melakukan HTTP testing terhadap aplikasi yang sudah berjalan.
 
 Target utamanya adalah membuat satu format test yang dapat digunakan terhadap backend apa pun: Rust, Go, Java, Node.js, Python, PHP, .NET, dan teknologi lain selama menyediakan HTTP endpoint.
 
@@ -42,14 +42,14 @@ deploy preprod
     ↓
 wait health/readiness
     ↓
-utest run tests/preprod.utest
+rettp run tests/preprod.rttp
     ↓
 core passed?
     ├── no  → abort / block release
     └── yes → continue remaining suite
 ```
 
-UTest bukan pengganti seluruh unit testing framework bahasa.
+Rettp bukan pengganti seluruh unit testing framework bahasa.
 
 Posisi utamanya adalah API testing, integration testing dari external HTTP boundary, post-deployment verification, preprod validation, release gating, serta contract/behavior verification.
 
@@ -223,16 +223,16 @@ Exact matching akan didukung melalui syntax `exact`, tetapi detail parser/semant
 Workspace yang direncanakan:
 
 ```text
-utest/
+rettp/
 ├── Cargo.toml
 ├── crates/
-│   ├── utest-domain/
-│   ├── utest-application/
-│   ├── utest-parser/
-│   ├── utest-http/
-│   ├── utest-runtime/
-│   ├── utest-reporter/
-│   └── utest-cli/
+│   ├── rettp-domain/
+│   ├── rettp-application/
+│   ├── rettp-parser/
+│   ├── rettp-http/
+│   ├── rettp-runtime/
+│   ├── rettp-reporter/
+│   └── rettp-cli/
 ├── tests/
 ├── examples/
 └── docs/
@@ -241,14 +241,14 @@ utest/
 Dependency direction:
 
 ```text
-utest-domain
+rettp-domain
     ↑
-utest-application
+rettp-application
     ↑
 adapters / runtime / CLI
 ```
 
-`utest-parser` bertugas:
+`rettp-parser` bertugas:
 
 ```text
 Source
@@ -327,7 +327,7 @@ Definition of Done lexer:
 Reference structure:
 
 ```text
-crates/utest-parser/
+crates/rettp-parser/
 ├── Cargo.toml
 ├── src/
 │   ├── lib.rs
@@ -347,11 +347,11 @@ Codex harus memprioritaskan existing local structure jika hanya berbeda naming t
 
 # 9. Cargo.toml Reference
 
-## `crates/utest-parser/Cargo.toml`
+## `crates/rettp-parser/Cargo.toml`
 
 ```toml
 [package]
-name = "utest-parser"
+name = "rettp-parser"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -366,7 +366,7 @@ pretty_assertions.workspace = true
 workspace = true
 ```
 
-Untuk fase lexer saja, dependency seperti `reqwest`, `tokio`, `clap`, `serde_json`, `utest-http`, dan `utest-runtime` tidak diperlukan.
+Untuk fase lexer saja, dependency seperti `reqwest`, `tokio`, `clap`, `serde_json`, `rettp-http`, dan `rettp-runtime` tidak diperlukan.
 
 Jika existing local crate sudah menggunakan dependency lain karena pekerjaan sebelumnya, jangan menghapusnya tanpa memeriksa usage.
 
@@ -1166,7 +1166,7 @@ Codex harus terlebih dahulu melihat test lokal yang sudah ada. Tambahkan test ya
 ## `tests/lexer.rs`
 
 ```rust
-use utest_parser::{
+use rettp_parser::{
     lex,
     LexerErrorKind,
     SourceSpan,
@@ -1176,7 +1176,7 @@ use utest_parser::{
 
 fn kinds(source: &str) -> Vec<TokenKind> {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         source,
     );
 
@@ -1485,7 +1485,7 @@ fn ignores_whitespace() {
 #[test]
 fn records_token_span() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "test POST",
     );
 
@@ -1507,7 +1507,7 @@ fn records_token_span() {
 #[test]
 fn eof_span_is_zero_length_at_end_of_source() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "test",
     );
 
@@ -1527,7 +1527,7 @@ fn eof_span_is_zero_length_at_end_of_source() {
 #[test]
 fn source_location_tracks_lines_and_columns() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "core {\n  test",
     );
 
@@ -1540,7 +1540,7 @@ fn source_location_tracks_lines_and_columns() {
 #[test]
 fn source_location_is_unicode_aware_for_columns() {
     let source = SourceText::new(
-        "unicode.utest",
+        "unicode.rttp",
         "你a\nx",
     );
 
@@ -1553,7 +1553,7 @@ fn source_location_is_unicode_aware_for_columns() {
 #[test]
 fn string_token_span_uses_byte_offsets_with_unicode() {
     let source = SourceText::new(
-        "unicode.utest",
+        "unicode.rttp",
         r#""你好""#,
     );
 
@@ -1575,7 +1575,7 @@ fn string_token_span_uses_byte_offsets_with_unicode() {
 #[test]
 fn reports_unexpected_character() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "@",
     );
 
@@ -1594,7 +1594,7 @@ fn reports_unexpected_character() {
 #[test]
 fn reports_unterminated_string_at_eof() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         r#""hello"#,
     );
 
@@ -1611,7 +1611,7 @@ fn reports_unterminated_string_at_eof() {
 #[test]
 fn reports_unterminated_string_at_newline() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "\"hello\ncore",
     );
 
@@ -1635,7 +1635,7 @@ fn reports_unterminated_string_at_newline() {
 #[test]
 fn reports_invalid_escape_sequence() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         r#""hello\q""#,
     );
 
@@ -1654,7 +1654,7 @@ fn reports_invalid_escape_sequence() {
 #[test]
 fn collects_multiple_errors() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "@ ? $",
     );
 
@@ -1666,7 +1666,7 @@ fn collects_multiple_errors() {
 #[test]
 fn always_emits_eof_even_when_errors_exist() {
     let source = SourceText::new(
-        "test.utest",
+        "test.rttp",
         "@",
     );
 
@@ -1681,7 +1681,7 @@ fn always_emits_eof_even_when_errors_exist() {
 #[test]
 fn lexes_complete_pipeline_example() {
     let source = SourceText::new(
-        "pipeline.utest",
+        "pipeline.rttp",
         r#"
 pipeline "authentication flow" {
     test "login" {
@@ -1995,7 +1995,7 @@ Minimal public API yang harus tersedia secara konseptual:
 
 ```rust
 let source = SourceText::new(
-    "auth.utest",
+    "auth.rttp",
     content,
 );
 
@@ -2018,7 +2018,7 @@ Jika local implementation memakai nama API yang sedikit berbeda tetapi sama bers
 
 ## Step 1 — Inspect repository
 
-Temukan root `Cargo.toml`, `crates/utest-parser`, `crates/utest-domain`, `tests`, dan `examples`.
+Temukan root `Cargo.toml`, `crates/rettp-parser`, `crates/rettp-domain`, `tests`, dan `examples`.
 
 Baca implementation lokal lexer seluruhnya. Jangan membuat assumption hanya dari handoff.
 
@@ -2078,9 +2078,9 @@ Prioritas test:
 
 ```bash
 cargo fmt --all
-cargo check -p utest-parser
-cargo test -p utest-parser
-cargo clippy -p utest-parser --all-targets -- -D warnings
+cargo check -p rettp-parser
+cargo test -p rettp-parser
+cargo clippy -p rettp-parser --all-targets -- -D warnings
 ```
 
 Jika workspace config menyebabkan package name berbeda, gunakan equivalent command dan jelaskan.
@@ -2196,7 +2196,7 @@ AST harus mempertahankan source spans untuk diagnostic. Parser tidak langsung me
 
 # 23. Final Guidance to Codex
 
-Prioritas kualitas untuk UTest:
+Prioritas kualitas untuk Rettp:
 
 1. predictable semantics;
 2. excellent diagnostics;
@@ -2208,7 +2208,7 @@ Prioritas kualitas untuk UTest:
 
 Jangan memperluas DSL tanpa kebutuhan.
 
-UTest sengaja bukan general-purpose programming language. Hindari menambahkan loops, functions, classes, macros, arbitrary scripting, atau implicit cross-test dependencies pada fase awal.
+Rettp sengaja bukan general-purpose programming language. Hindari menambahkan loops, functions, classes, macros, arbitrary scripting, atau implicit cross-test dependencies pada fase awal.
 
 Lexer harus tetap sederhana:
 

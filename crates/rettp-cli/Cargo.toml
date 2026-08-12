@@ -1,0 +1,19 @@
+[package]
+name = "rettp-cli"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "rettp"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.6.6", features = ["derive"] }
+tempfile = "3.20"
+tokio = { version = "1.53", features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
+rettp-application = { path = "../rettp-application" }
+rettp-domain = { path = "../rettp-domain" }
+rettp-http = { path = "../rettp-http" }
+rettp-parser = { path = "../rettp-parser" }
+rettp-reporter = { path = "../rettp-reporter" }
+rettp-runtime = { path = "../rettp-runtime" }

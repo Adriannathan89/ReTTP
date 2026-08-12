@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/utest-domain",
-    "crates/utest-application",
-    "crates/utest-parser",
-    "crates/utest-http",
-    "crates/utest-assertion",
-    "crates/utest-runtime",
-    "crates/utest-reporter",
-    "crates/utest-cli",
+    "crates/rettp-domain",
+    "crates/rettp-application",
+    "crates/rettp-parser",
+    "crates/rettp-http",
+    "crates/rettp-assertion",
+    "crates/rettp-runtime",
+    "crates/rettp-reporter",
+    "crates/rettp-cli",
 ]

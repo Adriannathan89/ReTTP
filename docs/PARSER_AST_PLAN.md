@@ -1,15 +1,15 @@
-# UTest Parser AST — Specification and Implementation Plan
+# Rettp Parser AST — Specification and Implementation Plan
 
 ## 1. Purpose
 
 This document defines the proposed AST and recursive-descent parser for the
-UTest DSL parser phase. It is based on the current `utest-domain` model, the
-implemented lexer, the example suite in `a.utest`, and the grammar decisions
+Rettp DSL parser phase. It is based on the current `rettp-domain` model, the
+implemented lexer, the example suite in `a.rttp`, and the grammar decisions
 confirmed for this phase.
 
 This is a review document. The proposed Rust files are stored as complete file
 contents under `docs/generated/parser/`. No parser implementation is applied to
-`crates/utest-parser/src` until the proposal is accepted.
+`crates/rettp-parser/src` until the proposal is accepted.
 
 ## 2. Scope
 
@@ -37,7 +37,7 @@ The parser is responsible for:
 
 The parser does not:
 
-- convert AST nodes into `utest-domain` values;
+- convert AST nodes into `rettp-domain` values;
 - validate duplicate requests, expectations, or request sections;
 - validate HTTP status ranges;
 - validate value/type compatibility;
@@ -62,7 +62,7 @@ The parser does not:
 
 HTTP status uses direct comparison syntax:
 
-```utest
+```rettp
 status = 200
 ```
 
@@ -73,7 +73,7 @@ status range.
 
 Field assertions support:
 
-```utest
+```rettp
 result: object
 result = { status = "ok" }
 result: object = { status = "ok" }
@@ -91,7 +91,7 @@ structure syntax is intentionally unsupported.
 
 Exact field-set validation is available only for an expectation body:
 
-```utest
+```rettp
 body exact {
     success: boolean = true
 }
@@ -101,14 +101,14 @@ body exact {
 
 A capture requires an explicit assertion type:
 
-```utest
+```rettp
 token: string -> TOKEN
 success: boolean = true -> SUCCESS
 ```
 
 Comparison-only capture is a syntax error:
 
-```utest
+```rettp
 token = "abc" -> TOKEN
 ```
 
@@ -116,7 +116,7 @@ token = "abc" -> TOKEN
 
 Supported expectation body forms are:
 
-```utest
+```rettp
 body { ... }
 body exact { ... }
 body = "OK"
@@ -211,7 +211,7 @@ unambiguous boundary after the lexer has discarded newlines.
 
 ### Syntax-first representation
 
-AST types are independent of `utest-domain`. This prevents parsing from
+AST types are independent of `rettp-domain`. This prevents parsing from
 performing semantic conversion too early and allows invalid-but-parseable input
 to retain enough information for the semantic validator.
 
@@ -315,22 +315,22 @@ panic.
 New source files:
 
 ```text
-crates/utest-parser/src/ast/mod.rs
-crates/utest-parser/src/ast/nodes.rs
-crates/utest-parser/src/parser/mod.rs
-crates/utest-parser/src/parser/error.rs
-crates/utest-parser/src/parser/suite_parser.rs
-crates/utest-parser/src/parser/block_parser.rs
-crates/utest-parser/src/parser/test_parser.rs
-crates/utest-parser/src/parser/request_parser.rs
-crates/utest-parser/src/parser/expectation_parser.rs
-crates/utest-parser/src/parser/value_parser.rs
+crates/rettp-parser/src/ast/mod.rs
+crates/rettp-parser/src/ast/nodes.rs
+crates/rettp-parser/src/parser/mod.rs
+crates/rettp-parser/src/parser/error.rs
+crates/rettp-parser/src/parser/suite_parser.rs
+crates/rettp-parser/src/parser/block_parser.rs
+crates/rettp-parser/src/parser/test_parser.rs
+crates/rettp-parser/src/parser/request_parser.rs
+crates/rettp-parser/src/parser/expectation_parser.rs
+crates/rettp-parser/src/parser/value_parser.rs
 ```
 
 Changed source file:
 
 ```text
-crates/utest-parser/src/lib.rs
+crates/rettp-parser/src/lib.rs
 ```
 
 Reviewable full-file proposals are stored in `docs/generated/parser/`.
@@ -365,4 +365,4 @@ Reviewable full-file proposals are stored in `docs/generated/parser/`.
 - Deeply nested input is bounded and cannot exhaust the parser thread stack.
 - Recovery preserves parent delimiters and valid top-level blocks after an error.
 - Cursor-only recovery does not clone token payloads that are immediately discarded.
-- Parser code does not depend on `utest-domain`, HTTP, runtime, or environment state.
+- Parser code does not depend on `rettp-domain`, HTTP, runtime, or environment state.

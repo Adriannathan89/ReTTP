@@ -3,7 +3,7 @@
 ## Objective
 
 Implement Week 10 of `TIMELINE.md`: expose the validated execution engine as
-`utest run`, render deterministic human-readable terminal output, and produce
+`rettp run`, render deterministic human-readable terminal output, and produce
 stable JSON and JUnit XML artifacts for CI/CD.
 
 This stage does not change DSL grammar or execution semantics. Every source
@@ -21,24 +21,24 @@ request, and no execution report.
 ## Dependency Direction
 
 ```text
-utest-cli
-    -> utest-application
-    -> utest-http
-    -> utest-parser
-    -> utest-runtime
-    -> utest-reporter
+rettp-cli
+    -> rettp-application
+    -> rettp-http
+    -> rettp-parser
+    -> rettp-runtime
+    -> rettp-reporter
 
-utest-reporter
-    -> utest-domain
+rettp-reporter
+    -> rettp-domain
     -> serde / serde_json / thiserror
 ```
 
-`utest-reporter` remains independent of Clap, Tokio, reqwest, filesystem I/O,
+`rettp-reporter` remains independent of Clap, Tokio, reqwest, filesystem I/O,
 environment variables, and process exit codes. It accepts an immutable domain
 `SuiteResult`, immediately converts it into a value-redacted public report,
 and renders that safe representation.
 
-`utest-cli` owns process concerns: argument parsing, filesystem reads/writes,
+`rettp-cli` owns process concerns: argument parsing, filesystem reads/writes,
 environment loading, HTTP-adapter construction, Tokio runtime construction,
 stdout/stderr selection, terminal capability detection, and exit codes.
 
@@ -47,7 +47,7 @@ stdout/stderr selection, terminal capability detection, and exit codes.
 ### Check
 
 ```text
-utest check FILE [--env-file FILE] [--var NAME=VALUE]...
+rettp check FILE [--env-file FILE] [--var NAME=VALUE]...
 ```
 
 `check` performs compilation only. Adding `--env-file` ensures checking and
@@ -56,7 +56,7 @@ running can use identical predefined-variable names.
 ### Run
 
 ```text
-utest run FILE \
+rettp run FILE \
     --base-url https://preprod.example.com \
     [--timeout 30s] \
     [--env-file FILE] \
@@ -93,7 +93,7 @@ The env-file reader:
 - accepts UTF-8 `NAME=value` entries, blank lines, comments, optional `export`,
   single-quoted values, and double-quoted values with common escapes;
 - does not perform `$NAME` or `${NAME}` expansion;
-- validates names through `utest_domain::VariableName`;
+- validates names through `rettp_domain::VariableName`;
 - never includes a parsed value in an error or `Debug` output;
 - rejects malformed quoting, trailing tokens, invalid UTF-8, and files larger
   than a documented one-MiB resource limit.
@@ -188,7 +188,7 @@ Example outline:
 ```json
 {
   "schema_version": 1,
-  "source": "tests/preprod.utest",
+  "source": "tests/preprod.rttp",
   "name": null,
   "status": "failed",
   "duration_ms": 42,
@@ -222,7 +222,7 @@ Each DSL test becomes one `<testcase>`:
 - passed tests have no failure child.
 
 A suite-level error that is not represented by a test is emitted as a
-synthetic `utest/suite` testcase so CI cannot report a false pass. XML text and
+synthetic `rettp/suite` testcase so CI cannot report a false pass. XML text and
 attributes are escaped without copying untrusted values into unchecked markup.
 Durations are emitted as seconds with exactly three fractional digits.
 
@@ -315,7 +315,7 @@ must reach at least 90% LLVM line coverage.
 - implement strict conversion from every domain result/failure/error variant;
 - implement pretty JSON output;
 - add subagent review and comprehensive tests;
-- require at least 90% LLVM line coverage for `utest-reporter`;
+- require at least 90% LLVM line coverage for `rettp-reporter`;
 - add complete English public Rustdoc;
 - run strict gates, `git add .`, and commit.
 

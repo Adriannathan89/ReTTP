@@ -1,11 +1,11 @@
-# UTest 0.1.1
+# Rettp 0.1.0
 
-UTest is a command-line HTTP verification runner for post-deployment and
-pre-production checks. A UTF-8 `.utest` suite describes requests, response
+Rettp is a command-line HTTP verification runner for post-deployment and
+pre-production checks. A UTF-8 `.rttp` suite describes requests, response
 assertions, sequential pipelines, and typed response captures without coupling
 the suite to an application language or test framework.
 
-Version 0.1.1 is the first published MVP release. It supports:
+Version 0.1.0 is the first published MVP release. It supports:
 
 - syntax and semantic validation without network access;
 - HTTP(S) requests using relative paths and a required base URL;
@@ -22,14 +22,14 @@ Download the archive for your platform from the GitHub Release, follow the
 [installation guide](INSTALLATION.md), and verify the executable:
 
 ```bash
-utest --version
+rettp --version
 ```
 
 From a repository checkout, validate and run the bundled example:
 
 ```bash
-utest check examples/basic.utest
-utest run examples/basic.utest --base-url http://localhost:3000
+rettp check examples/basic.rttp
+rettp run examples/basic.rttp --base-url http://localhost:3000
 ```
 
 ## Documentation
@@ -47,9 +47,9 @@ utest run examples/basic.utest --base-url http://localhost:3000
 
 | Platform | Architecture | Release asset |
 |---|---:|---|
-| Linux (glibc) | x86-64 | `utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz` |
-| Windows | x86-64 | `utest-v0.1.1-x86_64-pc-windows-msvc.zip` |
-| macOS | Apple Silicon | `utest-v0.1.1-aarch64-apple-darwin.tar.gz` |
+| Linux (glibc) | x86-64 | `rettp-v0.1.0-x86_64-unknown-linux-gnu.tar.gz` |
+| Windows | x86-64 | `rettp-v0.1.0-x86_64-pc-windows-msvc.zip` |
+| macOS | Apple Silicon | `rettp-v0.1.0-aarch64-apple-darwin.tar.gz` |
 
 Intel macOS, Linux ARM64, package-manager installation, retries, cookies,
-multipart requests, and parallel execution are not part of version 0.1.1.
+multipart requests, and parallel execution are not part of version 0.1.0.

@@ -3,8 +3,8 @@
 //! Exercises the complete checker and its all-or-nothing conversion contract.
 
 use libfuzzer_sys::fuzz_target;
-use utest_application::check_source;
-use utest_parser::{SourceSpan, SourceText, ValidationContext};
+use rettp_application::check_source;
+use rettp_parser::{SourceSpan, SourceText, ValidationContext};
 
 const MAX_FUZZ_INPUT_BYTES: usize = 64 * 1024;
 
@@ -24,7 +24,7 @@ fuzz_target!(|data: &[u8]| {
     }
 
     let content = String::from_utf8_lossy(data);
-    let source = SourceText::new("fuzz.utest", content.as_ref());
+    let source = SourceText::new("fuzz.rttp", content.as_ref());
     let report = check_source(&source, &ValidationContext::new());
 
     assert_eq!(report.is_success(), report.suite.is_some());

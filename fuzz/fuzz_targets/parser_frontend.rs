@@ -3,7 +3,7 @@
 //! Exercises lexer and parser span invariants with bounded arbitrary UTF-8.
 
 use libfuzzer_sys::fuzz_target;
-use utest_parser::{SourceSpan, SourceText, TokenKind, lex, parse};
+use rettp_parser::{SourceSpan, SourceText, TokenKind, lex, parse};
 
 const MAX_FUZZ_INPUT_BYTES: usize = 64 * 1024;
 
@@ -23,7 +23,7 @@ fuzz_target!(|data: &[u8]| {
     }
 
     let content = String::from_utf8_lossy(data);
-    let source = SourceText::new("fuzz.utest", content.as_ref());
+    let source = SourceText::new("fuzz.rttp", content.as_ref());
     let lexed = lex(&source);
 
     assert!(

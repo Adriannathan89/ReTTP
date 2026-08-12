@@ -1,0 +1,11 @@
+[package]
+name = "rettp-application"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rettp-assertion = { path = "../rettp-assertion" }
+rettp-domain = { path = "../rettp-domain" }
+rettp-http = { path = "../rettp-http" }
+rettp-parser = { path = "../rettp-parser" }
+rettp-runtime = { path = "../rettp-runtime" }

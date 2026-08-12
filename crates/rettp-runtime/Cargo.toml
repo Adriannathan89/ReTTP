@@ -1,0 +1,13 @@
+[package]
+name = "rettp-runtime"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bytes = "1.10"
+indexmap = "2.14"
+serde_json = "1.0"
+thiserror = "2.0"
+rettp-assertion = { path = "../rettp-assertion" }
+rettp-domain = { path = "../rettp-domain" }
+rettp-http = { path = "../rettp-http" }

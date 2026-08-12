@@ -1,6 +1,6 @@
 # Pre-production Verification Guide
 
-UTest is intended to run after an application deployment has completed and its
+Rettp is intended to run after an application deployment has completed and its
 HTTP endpoint is reachable. It is a release gate, not a load generator.
 
 ## Recommended workflow
@@ -8,14 +8,14 @@ HTTP endpoint is reachable. It is a release gate, not a load generator.
 1. Deploy the candidate application to an isolated pre-production environment.
 2. Wait for infrastructure health checks to report ready.
 3. Load credentials from the CI secret store.
-4. Run `utest check` when authoring or reviewing the suite.
+4. Run `rettp check` when authoring or reviewing the suite.
 5. Run the suite against the environment's explicit base URL.
 6. Publish JUnit and JSON reports even when the suite exits nonzero.
-7. Promote the deployment only when UTest exits `0`.
+7. Promote the deployment only when Rettp exits `0`.
 
 ## Example suite
 
-```utest
+```rettp
 core {
     test "create session" {
         request POST "/session" {
@@ -46,11 +46,11 @@ pipeline "read protected resource" {
 Run it with:
 
 ```bash
-utest run tests/preprod.utest \
+rettp run tests/preprod.rttp \
   --base-url https://preprod.example.com \
   --var RESOURCE_ID=42 \
-  --junit-file reports/utest.xml \
-  --json-file reports/utest.json
+  --junit-file reports/rettp.xml \
+  --json-file reports/rettp.json
 ```
 
 Provide `API_KEY` through the process environment or a protected env file.
@@ -69,5 +69,5 @@ Provide `API_KEY` through the process environment or a protected env file.
   regression.
 - Preserve reports as restricted CI artifacts and apply normal retention rules.
 
-Version 0.1.1 does not provide cleanup hooks or retries. The target application
+Version 0.1.0 does not provide cleanup hooks or retries. The target application
 or deployment job must clean up test data when required.

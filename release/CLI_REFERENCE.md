@@ -1,12 +1,12 @@
 # CLI Reference
 
-## `utest check`
+## `rettp check`
 
 Checks lexical, syntax, and semantic validity without creating an HTTP client
 or sending a request:
 
 ```text
-utest check [OPTIONS] <PATH>
+rettp check [OPTIONS] <PATH>
 ```
 
 Options:
@@ -18,12 +18,12 @@ Source files are limited to 5 MiB. Environment files are limited to 1 MiB.
 Diagnostics include the source path, line, and column without printing variable
 values.
 
-## `utest run`
+## `rettp run`
 
 Checks a suite first, then executes it only when validation succeeds:
 
 ```text
-utest run [OPTIONS] --base-url <URL> <PATH>
+rettp run [OPTIONS] --base-url <URL> <PATH>
 ```
 
 Options:
@@ -51,7 +51,7 @@ process environment < --env-file < --var
 Repeated `--var` assignments use the last value:
 
 ```bash
-utest run suite.utest \
+rettp run suite.rttp \
   --base-url https://preprod.example.com \
   --env-file .env.preprod \
   --var API_TOKEN=first \

@@ -1,21 +1,21 @@
-# UTest
+# Rettp
 
-[![CI](https://github.com/Adriannathan89/utest/actions/workflows/ci.yaml/badge.svg)](https://github.com/Adriannathan89/utest/actions/workflows/ci.yaml)
-[![Release](https://img.shields.io/github/v/release/Adriannathan89/utest?display_name=tag)](https://github.com/Adriannathan89/utest/releases)
+[![CI](https://github.com/Adriannathan89/rettp/actions/workflows/ci.yaml/badge.svg)](https://github.com/Adriannathan89/rettp/actions/workflows/ci.yaml)
+[![Release](https://img.shields.io/github/v/release/Adriannathan89/rettp?display_name=tag)](https://github.com/Adriannathan89/rettp/releases)
 
-UTest is a command-line HTTP verification runner for post-deployment and
-pre-production checks. A compact UTF-8 `.utest` suite describes HTTP requests,
+Rettp is a command-line HTTP verification runner for post-deployment and
+pre-production checks. A compact UTF-8 `.rttp` suite describes HTTP requests,
 response assertions, sequential pipelines, typed captures, and variable
 interpolation without coupling the suite to an application language or test
 framework.
 
-The current published MVP is **v0.1.1**.
+The current published MVP is **v0.1.0**.
 
 ## What it provides
 
-- `utest check` validates a suite without creating an HTTP client or sending a
+- `rettp check` validates a suite without creating an HTTP client or sending a
   network request.
-- `utest run` validates first and executes only a valid suite.
+- `rettp run` validates first and executes only a valid suite.
 - HTTP(S) requests with relative paths, headers, query parameters, JSON object
   bodies, timeouts, and redirect rejection.
 - `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and `OPTIONS`.
@@ -29,17 +29,17 @@ The current published MVP is **v0.1.1**.
 - Strict CI, dependency audit, coverage gate, bounded fuzzing, native release
   binaries, and SHA-256 checksums.
 
-UTest verifies a real deployed endpoint. It is not a load-testing tool and does
+Rettp verifies a real deployed endpoint. It is not a load-testing tool and does
 not replace unit or component tests.
 
-## Why UTest
+## Why Rettp
 
 Operational API checks often begin as a helpful `curl` command and gradually
-become a fragile collection of shell scripts. UTest keeps the directness of an
+become a fragile collection of shell scripts. Rettp keeps the directness of an
 HTTP command-line tool while making the verification contract reviewable,
 repeatable, and suitable for a deployment gate.
 
-- Keep requests, expectations, and response captures in one small `.utest`
+- Keep requests, expectations, and response captures in one small `.rttp`
   file.
 - Validate the entire suite before sending the first request, including
   variable scope and interpolation rules.
@@ -50,18 +50,18 @@ repeatable, and suitable for a deployment gate.
 
 ### Choosing the right tool
 
-These tools overlap, but they serve different jobs. It is normal to use UTest
+These tools overlap, but they serve different jobs. It is normal to use Rettp
 alongside them rather than replace them.
 
-| Tool | Best for | Where UTest differs |
+| Tool | Best for | Where Rettp differs |
 |---|---|---|
-| [`curl`](https://curl.se/) | Ad-hoc requests, downloading, debugging a single endpoint, and shell composition. | `curl` deliberately leaves assertions, captures, result aggregation, and a test-suite format to scripts. UTest provides those verification semantics, but is not a general transfer client. |
-| [HTTPie](https://httpie.io/) | Human-friendly interactive HTTP exploration. | HTTPie optimizes request authoring and readable responses. UTest optimizes declarative assertions and repeatable pass/fail checks in automation. |
-| [Postman](https://www.postman.com/) / [Newman](https://www.npmjs.com/package/newman) | Collaborative API collections, exploratory workflows, and JavaScript-based tests. | UTest is a small native CLI with a purpose-built DSL, no collection runtime, and explicit bounded execution behavior. It intentionally has a narrower feature set. |
-| [k6](https://k6.io/) | Load, stress, and performance testing under concurrency. | UTest verifies functional HTTP contracts sequentially. It does not generate load or report throughput for a remote service. |
-| Language test frameworks | Unit, component, and application integration tests close to source code. | UTest is language-independent and targets an already-running endpoint; it complements—not replaces—tests inside an application repository. |
+| [`curl`](https://curl.se/) | Ad-hoc requests, downloading, debugging a single endpoint, and shell composition. | `curl` deliberately leaves assertions, captures, result aggregation, and a test-suite format to scripts. Rettp provides those verification semantics, but is not a general transfer client. |
+| [HTTPie](https://httpie.io/) | Human-friendly interactive HTTP exploration. | HTTPie optimizes request authoring and readable responses. Rettp optimizes declarative assertions and repeatable pass/fail checks in automation. |
+| [Postman](https://www.postman.com/) / [Newman](https://www.npmjs.com/package/newman) | Collaborative API collections, exploratory workflows, and JavaScript-based tests. | Rettp is a small native CLI with a purpose-built DSL, no collection runtime, and explicit bounded execution behavior. It intentionally has a narrower feature set. |
+| [k6](https://k6.io/) | Load, stress, and performance testing under concurrency. | Rettp verifies functional HTTP contracts sequentially. It does not generate load or report throughput for a remote service. |
+| Language test frameworks | Unit, component, and application integration tests close to source code. | Rettp is language-independent and targets an already-running endpoint; it complements—not replaces—tests inside an application repository. |
 
-Choose UTest when you need a small checked-in suite to answer, “does this
+Choose Rettp when you need a small checked-in suite to answer, “does this
 deployed API still satisfy the contract we rely on?” Choose `curl` or HTTPie
 when you need to investigate a request interactively, and choose a load tool
 when capacity is the question.
@@ -69,39 +69,39 @@ when capacity is the question.
 ## Install
 
 Download the matching archive and `SHA256SUMS` from the
-[GitHub Releases page](https://github.com/Adriannathan89/utest/releases).
+[GitHub Releases page](https://github.com/Adriannathan89/rettp/releases).
 
 ### Linux x86-64
 
 ```bash
-curl -LO https://github.com/Adriannathan89/utest/releases/download/v0.1.1/utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz
-curl -LO https://github.com/Adriannathan89/utest/releases/download/v0.1.1/SHA256SUMS
-grep 'utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz$' SHA256SUMS | sha256sum --check
-tar -xzf utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz
-sudo install -m 0755 utest /usr/local/bin/utest
-utest --version
+curl -LO https://github.com/Adriannathan89/rettp/releases/download/v0.1.0/rettp-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/Adriannathan89/rettp/releases/download/v0.1.0/SHA256SUMS
+grep 'rettp-v0.1.0-x86_64-unknown-linux-gnu.tar.gz$' SHA256SUMS | sha256sum --check
+tar -xzf rettp-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+sudo install -m 0755 rettp /usr/local/bin/rettp
+rettp --version
 ```
 
 Expected output:
 
 ```text
-utest 0.1.1
+rettp 0.1.0
 ```
 
 | Platform | Architecture | Asset |
 |---|---:|---|
-| Linux (glibc) | x86-64 | `utest-v0.1.1-x86_64-unknown-linux-gnu.tar.gz` |
-| Windows | x86-64 | `utest-v0.1.1-x86_64-pc-windows-msvc.zip` |
-| macOS | Apple Silicon | `utest-v0.1.1-aarch64-apple-darwin.tar.gz` |
+| Linux (glibc) | x86-64 | `rettp-v0.1.0-x86_64-unknown-linux-gnu.tar.gz` |
+| Windows | x86-64 | `rettp-v0.1.0-x86_64-pc-windows-msvc.zip` |
+| macOS | Apple Silicon | `rettp-v0.1.0-aarch64-apple-darwin.tar.gz` |
 
 The [installation guide](release/INSTALLATION.md) covers Windows, macOS,
 checksum verification, source builds, and platform caveats.
 
 ## Quick start
 
-Create `health.utest`:
+Create `health.rttp`:
 
-```utest
+```rettp
 test "health endpoint" {
     request GET "/health"
     expect {
@@ -114,13 +114,13 @@ test "health endpoint" {
 Validate it without network access:
 
 ```bash
-utest check health.utest
+rettp check health.rttp
 ```
 
 Run it against an application:
 
 ```bash
-utest run health.utest --base-url http://localhost:3000
+rettp run health.rttp --base-url http://localhost:3000
 ```
 
 `--base-url` is required for `run`. It must be an HTTP(S) URL; DSL request paths
@@ -131,7 +131,7 @@ are relative to it, and redirects are not followed.
 This suite authenticates in `core`, captures a token, runs a dependent pipeline,
 and keeps a health check independent:
 
-```utest
+```rettp
 core {
     test "create session" {
         request POST "/session" {
@@ -184,10 +184,10 @@ Run it with a secret supplied by the environment:
 
 ```bash
 API_KEY=example-value \
-utest run preprod.utest \
+rettp run preprod.rttp \
   --base-url https://preprod.example.com \
-  --junit-file reports/utest.xml \
-  --json-file reports/utest.json
+  --junit-file reports/rettp.xml \
+  --json-file reports/rettp.json
 ```
 
 Use a CI secret store in real environments. Do not commit sensitive values in a
@@ -196,8 +196,8 @@ suite, dotenv file, or shell history.
 ## Commands
 
 ```text
-utest check [OPTIONS] <PATH>
-utest run [OPTIONS] --base-url <URL> <PATH>
+rettp check [OPTIONS] <PATH>
+rettp run [OPTIONS] --base-url <URL> <PATH>
 ```
 
 | Option | Applies to | Description |
@@ -218,7 +218,7 @@ process environment < --env-file < --var
 For example:
 
 ```bash
-utest run suite.utest \
+rettp run suite.rttp \
   --base-url https://preprod.example.com \
   --env-file .env.preprod \
   --var RESOURCE_ID=42
@@ -235,7 +235,7 @@ validation, input limits, and report-output behavior.
 Requests support quoted paths, headers, query parameters, and JSON object
 bodies. Request bodies are permitted only for `POST`, `PUT`, and `PATCH`.
 
-```utest
+```rettp
 request PATCH "/users/${USER_ID}" {
     headers { "Authorization" = "Bearer ${TOKEN}" }
     query { verbose = true }
@@ -243,7 +243,7 @@ request PATCH "/users/${USER_ID}" {
         name = "Ada"
         score = 1.5
         tags = ["preprod", "api"]
-        metadata = { source = "utest" }
+        metadata = { source = "rettp" }
     }
 }
 ```
@@ -257,7 +257,7 @@ there.
 
 An `expect` block can contain status, header, and body assertions:
 
-```utest
+```rettp
 expect {
     status = 200
     headers {
@@ -279,7 +279,7 @@ the `number` type, `1` and `1.0` compare equal.
 
 Text and empty body forms are also supported:
 
-```utest
+```rettp
 expect { body = "ready" }
 expect { body contains "ready" }
 expect { body empty }
@@ -289,7 +289,7 @@ expect { body empty }
 
 Placeholders use `${NAME}`. Captures require a declared field type:
 
-```utest
+```rettp
 expect {
     body {
         token: string -> TOKEN
@@ -315,7 +315,7 @@ full grammar and assertion semantics.
 
 ## Execution behavior
 
-UTest always checks before it runs:
+Rettp always checks before it runs:
 
 ```text
 check source
@@ -349,21 +349,21 @@ check source
 Use report files for CI:
 
 ```bash
-utest run suite.utest \
+rettp run suite.rttp \
   --base-url https://preprod.example.com \
-  --json-file reports/utest.json \
-  --junit-file reports/utest.xml
+  --json-file reports/rettp.json \
+  --junit-file reports/rettp.xml
 ```
 
 Reports are written atomically. When checking fails or the process is
-interrupted, UTest does not publish new reports and preserves existing files.
+interrupted, Rettp does not publish new reports and preserves existing files.
 
-UTest redacts value-bearing domain data in terminal, JSON, and JUnit reporting.
+Rettp redacts value-bearing domain data in terminal, JSON, and JUnit reporting.
 Reports and CI logs should still be treated as sensitive operational artifacts.
 
 ## CI/CD usage
 
-UTest works as a deployment gate. A CI job should install a pinned binary,
+Rettp works as a deployment gate. A CI job should install a pinned binary,
 verify its checksum, then preserve reports even on failure:
 
 ```yaml
@@ -371,10 +371,10 @@ verify its checksum, then preserve reports even on failure:
   env:
     API_TOKEN: ${{ secrets.PREPROD_API_TOKEN }}
   run: |
-    utest run tests/preprod.utest \
+    rettp run tests/preprod.rttp \
       --base-url "${{ vars.PREPROD_BASE_URL }}" \
-      --junit-file reports/utest.xml \
-      --json-file reports/utest.json
+      --junit-file reports/rettp.xml \
+      --json-file reports/rettp.json
 ```
 
 The [CI integration guide](release/CI_INTEGRATION.md) contains complete GitHub
@@ -382,13 +382,13 @@ Actions and GitLab CI examples, including verified installation.
 
 ## Updating
 
-UTest v0.1.1 has no `utest self-update` command yet. Download the newer release
+Rettp v0.1.0 has no `rettp self-update` command yet. Download the newer release
 asset, verify its checksum, extract it, and replace the installed binary:
 
 ```bash
-tar -xzf utest-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz
-sudo install -m 0755 utest /usr/local/bin/utest
-utest --version
+tar -xzf rettp-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz
+sudo install -m 0755 rettp /usr/local/bin/rettp
+rettp --version
 ```
 
 Each update is a new SemVer version and GitHub Release. Existing release tags
@@ -396,11 +396,11 @@ are never overwritten.
 
 ## Development
 
-UTest is a Rust workspace. Build it with Rust 1.96.0:
+Rettp is a Rust workspace. Build it with Rust 1.96.0:
 
 ```bash
-cargo build --release --locked --package utest-cli
-./target/release/utest --version
+cargo build --release --locked --package rettp-cli
+./target/release/rettp --version
 ```
 
 The local quality gates are:
@@ -425,18 +425,18 @@ quality gates, documentation expectations, and pull-request process.
 ## Benchmark
 
 The following is a local baseline, measured on 11 August 2026
-with the released `utest 0.1.1` Linux x86-64 binary. The host was an AMD Ryzen
+with the released `rettp 0.1.0` Linux x86-64 binary. The host was an AMD Ryzen
 5 6600H (Linux 7.0.0-28-generic). CPU affinity pinned the benchmark controller,
-the UTest processes, and the loopback server to one logical CPU (CPU 0).
+the Rettp processes, and the loopback server to one logical CPU (CPU 0).
 
-The workload was [`a.utest`](a.utest): each successful suite invocation makes
+The workload was [`a.rttp`](a.rttp): each successful suite invocation makes
 four small JSON HTTP requests—health, login, authenticated data, and
 unauthenticated data. The server listened only on `127.0.0.1`, held all
 responses in memory, and performed no TLS, database, disk I/O, delay, or report
 file output. Every table entry contains 20 suite invocations (80 HTTP requests)
 after five warm-up invocations.
 
-| Concurrent UTest processes | Throughput (requests/s) | Suite p50 | Suite p95 |
+| Concurrent Rettp processes | Throughput (requests/s) | Suite p50 | Suite p95 |
 |---:|---:|---:|---:|
 | 1 | 348.5 | 11.19 ms | 11.63 ms |
 | 2 | 361.9 | 21.85 ms | 24.06 ms |
@@ -445,7 +445,7 @@ after five warm-up invocations.
 | 12 | 68.2 | 109.02 ms | 1,161.58 ms |
 
 The highest observed throughput was **369.3 requests/s** with two concurrent
-UTest processes; the table records a 361.9 requests/s sample at that level.
+Rettp processes; the table records a 361.9 requests/s sample at that level.
 Repeating that level produced 354.6–369.3 requests/s. More
 processes did not increase capacity: under the intentionally shared one-core
 budget, the single-threaded loopback server and client processes contend for
@@ -459,7 +459,7 @@ assertion complexity, remote service behavior, and reporting configuration.
 ## Architecture
 
 ```text
-.utest source
+.rttp source
   -> lexer and parser
   -> semantic validation and domain conversion
   -> runtime interpolation and request resolution
@@ -471,16 +471,16 @@ assertion complexity, remote service behavior, and reporting configuration.
 
 | Crate | Responsibility |
 |---|---|
-| `utest-domain` | Transport-independent suite, request, assertion, value, variable, and result types. |
-| `utest-parser` | Source spans, lexer, parser AST, semantic validation, and domain conversion. |
-| `utest-runtime` | Immutable variables, interpolation, request resolution, and capture commit. |
-| `utest-http` | HTTP client port, URL configuration, reqwest adapter, and bounded responses. |
-| `utest-assertion` | Response comparison and bounded structured failures. |
-| `utest-application` | Checker facade and sequential execution orchestration. |
-| `utest-reporter` | Redacted terminal, JSON, and JUnit renderers. |
-| `utest-cli` | Commands, source/env loading, output publication, and interrupts. |
+| `rettp-domain` | Transport-independent suite, request, assertion, value, variable, and result types. |
+| `rettp-parser` | Source spans, lexer, parser AST, semantic validation, and domain conversion. |
+| `rettp-runtime` | Immutable variables, interpolation, request resolution, and capture commit. |
+| `rettp-http` | HTTP client port, URL configuration, reqwest adapter, and bounded responses. |
+| `rettp-assertion` | Response comparison and bounded structured failures. |
+| `rettp-application` | Checker facade and sequential execution orchestration. |
+| `rettp-reporter` | Redacted terminal, JSON, and JUnit renderers. |
+| `rettp-cli` | Commands, source/env loading, output publication, and interrupts. |
 
-## Limits and non-goals for v0.1.1
+## Limits and non-goals for v0.1.0
 
 - Release binaries support Linux x86-64 glibc, Windows x86-64, and macOS Apple
   Silicon only.
@@ -506,4 +506,4 @@ assertion complexity, remote service behavior, and reporting configuration.
 ## License
 
 No license has been declared for this repository. Contact the repository owner
-before redistributing, modifying, or incorporating UTest into another project.
+before redistributing, modifying, or incorporating Rettp into another project.

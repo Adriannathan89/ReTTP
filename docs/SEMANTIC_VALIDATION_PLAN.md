@@ -1,24 +1,24 @@
-# Semantic Validation, AST Conversion, and `utest check` Plan
+# Semantic Validation, AST Conversion, and `rettp check` Plan
 
 ## Objective
 
 Implement week 5 of `TIMELINE.md`: turn a syntax-valid `SuiteAst` into a
-semantically valid `utest_domain::TestSuite`, expose stable source-spanned
-semantic diagnostics, and add `utest check` with exit code `3` for lexical,
+semantically valid `rettp_domain::TestSuite`, expose stable source-spanned
+semantic diagnostics, and add `rettp check` with exit code `3` for lexical,
 syntax, or semantic failures.
 
 ## Dependency Direction
 
 ```text
-utest-cli -> utest-application -> utest-parser -> utest-domain
+rettp-cli -> rettp-application -> rettp-parser -> rettp-domain
 ```
 
-- `utest-domain` remains independent of parsing, filesystems, and CLI concerns.
-- `utest-parser` owns AST validation and conversion because it owns `SuiteAst`
+- `rettp-domain` remains independent of parsing, filesystems, and CLI concerns.
+- `rettp-parser` owns AST validation and conversion because it owns `SuiteAst`
   and source spans.
-- `utest-application` orchestrates the lex/parse/validate pipeline without
+- `rettp-application` orchestrates the lex/parse/validate pipeline without
   reading files or terminating the process.
-- `utest-cli` owns filesystem access, environment/CLI variables, terminal
+- `rettp-cli` owns filesystem access, environment/CLI variables, terminal
   rendering, and process exit codes.
 
 ## Public Semantic API
@@ -112,7 +112,7 @@ The same interpolation grammar applies to request paths and string-valued
 headers. All of the following are valid when the referenced variables are in
 scope:
 
-```utest
+```rettp
 request GET "/data/${id}"
 
 headers {
@@ -134,7 +134,7 @@ reached, that subtree produces one diagnostic and is not recursively visited.
 
 ## Check Use Case
 
-`utest_application::check_source` processes one named UTF-8 source in phases:
+`rettp_application::check_source` processes one named UTF-8 source in phases:
 
 1. lex;
 2. stop and return lexical diagnostics if lexing fails;
@@ -148,7 +148,7 @@ This phase boundary avoids cascaded semantic diagnostics from malformed syntax.
 ## CLI Contract
 
 ```text
-utest check <path> [--var NAME=VALUE ...]
+rettp check <path> [--var NAME=VALUE ...]
 ```
 
 - Environment variable names and repeated `--var` names are predefined for

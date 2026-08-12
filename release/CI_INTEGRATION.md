@@ -20,12 +20,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Install UTest 0.1.1
+      - name: Install Rettp 0.1.0
         shell: bash
         run: |
-          version=v0.1.1
-          repository=Adriannathan89/utest
-          asset="utest-${version}-x86_64-unknown-linux-gnu.tar.gz"
+          version=v0.1.0
+          repository=Adriannathan89/rettp
+          asset="rettp-${version}-x86_64-unknown-linux-gnu.tar.gz"
           curl --fail --location --silent --show-error \
             --output "${asset}" \
             "https://github.com/${repository}/releases/download/${version}/${asset}"
@@ -34,20 +34,20 @@ jobs:
             "https://github.com/${repository}/releases/download/${version}/SHA256SUMS"
           grep " ${asset}$" SHA256SUMS | sha256sum --check
           tar -xzf "${asset}"
-          sudo install -m 0755 utest /usr/local/bin/utest
+          sudo install -m 0755 rettp /usr/local/bin/rettp
       - name: Run suite
         env:
           API_TOKEN: ${{ secrets.PREPROD_API_TOKEN }}
         run: |
-          utest run tests/preprod.utest \
+          rettp run tests/preprod.rttp \
             --base-url "${{ vars.PREPROD_BASE_URL }}" \
-            --junit-file reports/utest.xml \
-            --json-file reports/utest.json
+            --junit-file reports/rettp.xml \
+            --json-file reports/rettp.json
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: utest-reports
+          name: rettp-reports
           path: reports/
           if-no-files-found: ignore
 ```
@@ -64,24 +64,24 @@ preprod-verification:
   stage: test
   timeout: 10m
   variables:
-    UTEST_VERSION: "v0.1.1"
+    RETTP_VERSION: "v0.1.0"
   before_script:
     - apt-get update && apt-get install --yes ca-certificates curl
-    - export ASSET="utest-${UTEST_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
-    - curl --fail --location --silent --show-error --output "$ASSET" "https://github.com/Adriannathan89/utest/releases/download/${UTEST_VERSION}/${ASSET}"
-    - curl --fail --location --silent --show-error --output SHA256SUMS "https://github.com/Adriannathan89/utest/releases/download/${UTEST_VERSION}/SHA256SUMS"
+    - export ASSET="rettp-${RETTP_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+    - curl --fail --location --silent --show-error --output "$ASSET" "https://github.com/Adriannathan89/rettp/releases/download/${RETTP_VERSION}/${ASSET}"
+    - curl --fail --location --silent --show-error --output SHA256SUMS "https://github.com/Adriannathan89/rettp/releases/download/${RETTP_VERSION}/SHA256SUMS"
     - grep " $ASSET$" SHA256SUMS | sha256sum --check
     - tar -xzf "$ASSET"
-    - install -m 0755 utest /usr/local/bin/utest
+    - install -m 0755 rettp /usr/local/bin/rettp
   script:
-    - utest run tests/preprod.utest --base-url "$PREPROD_BASE_URL" --junit-file reports/utest.xml --json-file reports/utest.json
+    - rettp run tests/preprod.rttp --base-url "$PREPROD_BASE_URL" --junit-file reports/rettp.xml --json-file reports/rettp.json
   artifacts:
     when: always
     reports:
-      junit: reports/utest.xml
+      junit: reports/rettp.xml
     paths:
-      - reports/utest.json
+      - reports/rettp.json
 ```
 
 Configure `PREPROD_BASE_URL` and sensitive variables as protected or masked CI
-variables. UTest's nonzero exit codes naturally fail the CI job.
+variables. Rettp's nonzero exit codes naturally fail the CI job.

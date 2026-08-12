@@ -10,15 +10,15 @@ variable interpolation and suite execution remain runtime responsibilities.
 ## Dependency Direction
 
 ```text
-utest-runtime -> utest-http -> utest-domain
+rettp-runtime -> rettp-http -> rettp-domain
                          \-> reqwest
 ```
 
-- `utest-domain` continues to describe unresolved suite input without an HTTP
+- `rettp-domain` continues to describe unresolved suite input without an HTTP
   implementation dependency.
-- `utest-http` owns the transport port, resolved wire models, configuration,
+- `rettp-http` owns the transport port, resolved wire models, configuration,
   response model, transport errors, and the `reqwest` adapter.
-- `utest-runtime` will resolve every `${variable}` before constructing a
+- `rettp-runtime` will resolve every `${variable}` before constructing a
   `ResolvedHttpRequest` in the following timeline stage.
 - The port does not depend on the parser, application, CLI, reporter, or
   runtime crates.
@@ -50,7 +50,7 @@ retaining HTTP/2 support.
 
 `ResolvedHttpRequest` contains only data ready for wire encoding:
 
-- `HttpMethod` from `utest-domain`;
+- `HttpMethod` from `rettp-domain`;
 - a non-empty relative path;
 - insertion-ordered headers and query parameters;
 - an optional resolved body;
@@ -169,13 +169,13 @@ cannot be leaked through diagnostics. HTTP error statuses do not become
 Full proposals are stored in `docs/generated/http/`:
 
 ```text
-crates/utest-http/Cargo.toml
-crates/utest-http/src/lib.rs
-crates/utest-http/src/client.rs
-crates/utest-http/src/config.rs
-crates/utest-http/src/error.rs
-crates/utest-http/src/model.rs
-crates/utest-http/src/reqwest_client.rs
+crates/rettp-http/Cargo.toml
+crates/rettp-http/src/lib.rs
+crates/rettp-http/src/client.rs
+crates/rettp-http/src/config.rs
+crates/rettp-http/src/error.rs
+crates/rettp-http/src/model.rs
+crates/rettp-http/src/reqwest_client.rs
 ```
 
 No Rust source or manifest is changed until this plan and every proposed file

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1
+## 0.1.0
 
 Initial MVP release.
 
@@ -10,7 +10,7 @@ binary or GitHub Release was published for that tag.
 
 ### Added
 
-- UTF-8 UTest DSL lexer, parser, source spans, error recovery, and semantic
+- UTF-8 Rettp DSL lexer, parser, source spans, error recovery, and semantic
   validation.
 - Domain model for suites, requests, expectations, variables, captures, and
   execution results.

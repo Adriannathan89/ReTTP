@@ -11,20 +11,20 @@ Week 9 execution engine's responsibility.
 ## Dependency Direction
 
 ```text
-utest-cli
-    -> utest-application
-    -> utest-parser
-    -> utest-runtime
+rettp-cli
+    -> rettp-application
+    -> rettp-parser
+    -> rettp-runtime
 
-utest-runtime
-    -> utest-assertion
-    -> utest-domain
-    -> utest-http
+rettp-runtime
+    -> rettp-assertion
+    -> rettp-domain
+    -> rettp-http
 ```
 
-`utest-runtime` owns values that exist only while a suite runs. It converts the
+`rettp-runtime` owns values that exist only while a suite runs. It converts the
 unresolved domain request and expectation models into the resolved models
-already consumed by `utest-http` and `utest-assertion`. It has no dependency on
+already consumed by `rettp-http` and `rettp-assertion`. It has no dependency on
 the parser, CLI framework, async runtime, filesystem, or HTTP backend.
 
 ## Runtime Variables
@@ -50,7 +50,7 @@ The CLI builds the store in this order:
 The supported syntax is deliberately one assignment per flag:
 
 ```bash
-utest check suite.utest --var name1=10 --var name2=4
+rettp check suite.rttp --var name1=10 --var name2=4
 ```
 
 A comma-separated assignment list is not supported. Values may be empty and
@@ -75,7 +75,7 @@ the scope lifecycle:
 - a failed test receives no pending capture transaction.
 
 This matches the scope rules already enforced statically by
-`utest-parser::ValidationContext` without coupling runtime code to the parser.
+`rettp-parser::ValidationContext` without coupling runtime code to the parser.
 
 ## Interpolation Grammar
 
@@ -105,7 +105,7 @@ Captured objects and arrays can only be substituted into a JSON request body
 or a JSON expected value. A string node consisting of exactly one placeholder
 preserves the captured structure:
 
-```utest
+```rettp
 body {
     payload = "${CAPTURED_OBJECT}"
 }

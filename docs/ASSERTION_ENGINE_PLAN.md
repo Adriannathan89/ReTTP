@@ -11,19 +11,19 @@ this crate.
 ## Dependency Direction
 
 ```text
-utest-runtime (Week 8/9)
-    -> utest-assertion
-        -> utest-domain
-        -> utest-http
+rettp-runtime (Week 8/9)
+    -> rettp-assertion
+        -> rettp-domain
+        -> rettp-http
 ```
 
-The assertion engine is a new `utest-assertion` crate. It consumes the
-backend-neutral `utest_http::HttpResponse` and uses the existing domain failure
+The assertion engine is a new `rettp-assertion` crate. It consumes the
+backend-neutral `rettp_http::HttpResponse` and uses the existing domain failure
 types. It does not depend on the parser, CLI, Tokio, or `reqwest`.
 
 ## Resolved Expectation Boundary
 
-The current `utest_domain::ResponseExpectation` may contain
+The current `rettp_domain::ResponseExpectation` may contain
 `InterpolatedString` values. Passing that type directly to the assertion engine
 would allow unresolved `${variable}` placeholders to be compared as literal
 text by mistake.
@@ -160,7 +160,7 @@ large number of failures from multiplying retained response data.
 ## HTTP Model Adjustment
 
 `ResponseHeaders::append` is currently crate-private, so a fake `HttpClient`
-outside `utest-http` cannot construct a response containing headers. The method
+outside `rettp-http` cannot construct a response containing headers. The method
 will become public and normalize names to ASCII lowercase itself. A chainable
 `with_header` builder will also be added. This keeps runtime and assertion tests
 independent of a real HTTP server while preserving repeated header values.
@@ -222,7 +222,7 @@ cargo fmt --all -- --check
 cargo check --workspace --all-targets
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
-cargo llvm-cov -p utest-assertion --all-targets --summary-only
+cargo llvm-cov -p rettp-assertion --all-targets --summary-only
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
 git diff --check
 ```

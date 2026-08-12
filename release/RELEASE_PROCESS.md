@@ -10,8 +10,8 @@ All workspace packages must use the same version. Tag `vX.Y.Z` must exactly
 match that workspace version without the leading `v`. For the first release:
 
 ```text
-workspace version: 0.1.1
-tag:               v0.1.1
+workspace version: 0.1.0
+tag:               v0.1.0
 ```
 
 A hyphenated version tag such as `v0.2.0-rc.1` produces a GitHub pre-release.
@@ -28,9 +28,9 @@ cargo test --workspace --all-targets --all-features --locked
 cargo llvm-cov --workspace --all-targets --all-features --locked --fail-under-lines 90
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps --locked
 cargo check --manifest-path fuzz/Cargo.toml --bins --locked
-cargo build --release --locked --package utest-cli
-./target/release/utest --version
-./target/release/utest --help
+cargo build --release --locked --package rettp-cli
+./target/release/rettp --version
+./target/release/rettp --help
 ```
 
 Review `git diff --check`, package versions, changelog, installation commands,
@@ -65,13 +65,13 @@ remain the distribution channel.
 ```bash
 git switch main
 git pull --ff-only origin main
-git tag -a v0.1.1 -m "UTest 0.1.1"
-git push origin v0.1.1
+git tag -a v0.1.0 -m "Rettp 0.1.0"
+git push origin v0.1.0
 ```
 
 After GitHub Actions succeeds, verify that the release contains three archives
 and `SHA256SUMS`. Download each archive on its target platform, verify the
-checksum, and run `utest --version` before announcing the release.
+checksum, and run `rettp --version` before announcing the release.
 
 ## Failure and rollback
 

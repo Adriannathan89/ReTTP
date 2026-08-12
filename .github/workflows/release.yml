@@ -83,23 +83,23 @@ jobs:
           toolchain: 1.96.0
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
-      - run: cargo build --release --locked --package utest-cli --target ${{ matrix.target }}
+      - run: cargo build --release --locked --package rettp-cli --target ${{ matrix.target }}
       - name: Smoke-test Unix binary
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          binary="target/${{ matrix.target }}/release/utest"
+          binary="target/${{ matrix.target }}/release/rettp"
           version="${GITHUB_REF_NAME#v}"
-          test "$("${binary}" --version)" = "utest ${version}"
+          test "$("${binary}" --version)" = "rettp ${version}"
           "${binary}" --help >/dev/null
       - name: Smoke-test Windows binary
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $binary = "target/${{ matrix.target }}/release/utest.exe"
+          $binary = "target/${{ matrix.target }}/release/rettp.exe"
           $version = $env:GITHUB_REF_NAME.Substring(1)
           $actualVersion = (& $binary --version).Trim()
-          if ($LASTEXITCODE -ne 0 -or $actualVersion -ne "utest $version") {
+          if ($LASTEXITCODE -ne 0 -or $actualVersion -ne "rettp $version") {
             throw "unexpected binary version: $actualVersion"
           }
           & $binary --help | Out-Null
@@ -111,16 +111,16 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          tar -C "target/${{ matrix.target }}/release" -czf "dist/utest-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz" utest
+          tar -C "target/${{ matrix.target }}/release" -czf "dist/rettp-${GITHUB_REF_NAME}-${{ matrix.target }}.tar.gz" rettp
       - name: Package Windows artifact
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          Compress-Archive -Path "target/${{ matrix.target }}/release/utest.exe" -DestinationPath "dist/utest-${env:GITHUB_REF_NAME}-${{ matrix.target }}.zip"
+          Compress-Archive -Path "target/${{ matrix.target }}/release/rettp.exe" -DestinationPath "dist/rettp-${env:GITHUB_REF_NAME}-${{ matrix.target }}.zip"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: utest-${{ matrix.target }}
+          name: rettp-${{ matrix.target }}
           path: dist/*
           if-no-files-found: error
           retention-days: 1
@@ -143,7 +143,7 @@ jobs:
         shell: bash
         run: |
           cd dist
-          sha256sum utest-* > SHA256SUMS
+          sha256sum rettp-* > SHA256SUMS
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           generate_release_notes: true

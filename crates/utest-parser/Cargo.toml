@@ -1,9 +1,0 @@
-[package]
-name = "utest-parser"
-version = "0.1.1"
-edition = "2024"
-
-[dependencies]
-indexmap = "2.14.0"
-thiserror = "2.0.19"
-utest-domain = { path = "../utest-domain" }

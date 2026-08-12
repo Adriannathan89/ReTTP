@@ -827,6 +827,84 @@ dependencies = [
 ]
 
 [[package]]
+name = "rettp-application"
+version = "0.1.0"
+dependencies = [
+ "rettp-assertion",
+ "rettp-domain",
+ "rettp-http",
+ "rettp-parser",
+ "rettp-runtime",
+]
+
+[[package]]
+name = "rettp-assertion"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "indexmap",
+ "rettp-domain",
+ "rettp-http",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "rettp-domain"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "rettp-fuzz"
+version = "0.0.0"
+dependencies = [
+ "libfuzzer-sys",
+ "rettp-application",
+ "rettp-parser",
+]
+
+[[package]]
+name = "rettp-http"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "indexmap",
+ "mime",
+ "reqwest",
+ "rettp-domain",
+ "serde_json",
+ "thiserror",
+ "url",
+]
+
+[[package]]
+name = "rettp-parser"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "rettp-domain",
+ "thiserror",
+]
+
+[[package]]
+name = "rettp-runtime"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "indexmap",
+ "rettp-assertion",
+ "rettp-domain",
+ "rettp-http",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "ring"
 version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1299,84 +1377,6 @@ dependencies = [
  "idna",
  "percent-encoding",
  "serde",
-]
-
-[[package]]
-name = "utest-application"
-version = "0.1.1"
-dependencies = [
- "utest-assertion",
- "utest-domain",
- "utest-http",
- "utest-parser",
- "utest-runtime",
-]
-
-[[package]]
-name = "utest-assertion"
-version = "0.1.1"
-dependencies = [
- "bytes",
- "indexmap",
- "serde_json",
- "thiserror",
- "utest-domain",
- "utest-http",
-]
-
-[[package]]
-name = "utest-domain"
-version = "0.1.1"
-dependencies = [
- "indexmap",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "utest-fuzz"
-version = "0.0.0"
-dependencies = [
- "libfuzzer-sys",
- "utest-application",
- "utest-parser",
-]
-
-[[package]]
-name = "utest-http"
-version = "0.1.1"
-dependencies = [
- "async-trait",
- "bytes",
- "indexmap",
- "mime",
- "reqwest",
- "serde_json",
- "thiserror",
- "url",
- "utest-domain",
-]
-
-[[package]]
-name = "utest-parser"
-version = "0.1.1"
-dependencies = [
- "indexmap",
- "thiserror",
- "utest-domain",
-]
-
-[[package]]
-name = "utest-runtime"
-version = "0.1.1"
-dependencies = [
- "bytes",
- "indexmap",
- "serde_json",
- "thiserror",
- "utest-assertion",
- "utest-domain",
- "utest-http",
 ]
 
 [[package]]

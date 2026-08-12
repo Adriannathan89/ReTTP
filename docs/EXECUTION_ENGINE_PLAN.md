@@ -3,22 +3,22 @@
 ## Objective
 
 Implement Week 9 of `TIMELINE.md`: execute a semantically valid
-`utest_domain::TestSuite` through the existing runtime, HTTP, and assertion
+`rettp_domain::TestSuite` through the existing runtime, HTTP, and assertion
 boundaries and return a complete, source-ordered `SuiteResult`.
 
-The execution engine belongs to `utest-application` because it coordinates use
+The execution engine belongs to `rettp-application` because it coordinates use
 cases. It does not parse source, construct a production HTTP adapter, render a
 report, read files, or terminate the process.
 
 ## Dependency Direction
 
 ```text
-utest-cli (Week 10 run command)
-    -> utest-application
-        -> utest-domain
-        -> utest-runtime
-        -> utest-http (HttpClient port only)
-        -> utest-assertion
+rettp-cli (Week 10 run command)
+    -> rettp-application
+        -> rettp-domain
+        -> rettp-runtime
+        -> rettp-http (HttpClient port only)
+        -> rettp-assertion
 ```
 
 The application crate accepts `&dyn HttpClient`, so production execution and

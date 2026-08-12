@@ -1,6 +1,6 @@
 # Language Reference
 
-UTest source files are UTF-8 text. Keywords and HTTP methods are
+Rettp source files are UTF-8 text. Keywords and HTTP methods are
 case-sensitive. Whitespace and `//` line comments are ignored between tokens;
 commas between map entries are optional.
 
@@ -11,7 +11,7 @@ tests. A suite must contain at least one block, and every pipeline must contain
 at least one test. At most one core is allowed; it may be empty and may appear
 anywhere in the source.
 
-```utest
+```rettp
 core {
     test "authenticate" {
         request POST "/session"
@@ -62,7 +62,7 @@ suite.
 Supported methods are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, and
 `OPTIONS`. Paths must be quoted and relative to the CLI base URL:
 
-```utest
+```rettp
 request PATCH "/users/${USER_ID}" {
     headers {
         "Authorization" = "Bearer ${TOKEN}"
@@ -74,7 +74,7 @@ request PATCH "/users/${USER_ID}" {
         score = 1.5
         note = null
         tags = ["api", "preprod"]
-        metadata = { source = "utest" }
+        metadata = { source = "rettp" }
     }
 }
 ```
@@ -89,7 +89,7 @@ Captured objects and arrays can be reused only inside a request body.
 The value grammar supports strings, signed integers, finite decimal numbers,
 booleans, `null`, arrays, and objects:
 
-```utest
+```rettp
 {
     text = "value"
     integer = -10
@@ -108,7 +108,7 @@ required.
 
 ### Status
 
-```utest
+```rettp
 expect { status = 200 }
 ```
 
@@ -119,7 +119,7 @@ Valid expected status codes range from 100 through 599.
 Header names are case-insensitive. Assertions can require existence, exact
 value equality, or a substring:
 
-```utest
+```rettp
 expect {
     headers {
         "Content-Type": string
@@ -134,7 +134,7 @@ response headers are not rejected.
 
 ### Text and empty bodies
 
-```utest
+```rettp
 expect { body = "ready" }
 expect { body contains "ready" }
 expect { body empty }
@@ -147,7 +147,7 @@ substring. `empty` accepts an empty response body.
 
 A normal object assertion is partial: undeclared fields are allowed.
 
-```utest
+```rettp
 expect {
     body {
         id: integer
@@ -160,7 +160,7 @@ expect {
 
 `body exact` rejects undeclared fields at the top-level object:
 
-```utest
+```rettp
 expect {
     body exact {
         id: integer
@@ -185,7 +185,7 @@ Placeholders use `${NAME}`. Names must follow the variable identifier rules and
 must be defined by the environment, an env file, `--var`, an earlier core
 capture, or an earlier capture in the same pipeline.
 
-```utest
+```rettp
 request GET "/users/${USER_ID}" {
     headers { "Authorization" = "Bearer ${TOKEN}" }
     body { copied = "${CAPTURED_OBJECT}" }
@@ -206,7 +206,7 @@ semantic errors and prevent all network execution.
 
 Capture is allowed only on typed JSON response fields:
 
-```utest
+```rettp
 expect {
     body {
         token: string -> TOKEN
