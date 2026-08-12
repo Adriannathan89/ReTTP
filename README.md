@@ -32,6 +32,40 @@ The current published MVP is **v0.1.1**.
 UTest verifies a real deployed endpoint. It is not a load-testing tool and does
 not replace unit or component tests.
 
+## Why UTest
+
+Operational API checks often begin as a helpful `curl` command and gradually
+become a fragile collection of shell scripts. UTest keeps the directness of an
+HTTP command-line tool while making the verification contract reviewable,
+repeatable, and suitable for a deployment gate.
+
+- Keep requests, expectations, and response captures in one small `.utest`
+  file.
+- Validate the entire suite before sending the first request, including
+  variable scope and interpolation rules.
+- Run dependent authentication or setup flows once, then reuse typed captures
+  safely in later requests.
+- Publish deterministic terminal, JSON, and JUnit results for local use and
+  CI systems.
+
+### Choosing the right tool
+
+These tools overlap, but they serve different jobs. It is normal to use UTest
+alongside them rather than replace them.
+
+| Tool | Best for | Where UTest differs |
+|---|---|---|
+| [`curl`](https://curl.se/) | Ad-hoc requests, downloading, debugging a single endpoint, and shell composition. | `curl` deliberately leaves assertions, captures, result aggregation, and a test-suite format to scripts. UTest provides those verification semantics, but is not a general transfer client. |
+| [HTTPie](https://httpie.io/) | Human-friendly interactive HTTP exploration. | HTTPie optimizes request authoring and readable responses. UTest optimizes declarative assertions and repeatable pass/fail checks in automation. |
+| [Postman](https://www.postman.com/) / [Newman](https://www.npmjs.com/package/newman) | Collaborative API collections, exploratory workflows, and JavaScript-based tests. | UTest is a small native CLI with a purpose-built DSL, no collection runtime, and explicit bounded execution behavior. It intentionally has a narrower feature set. |
+| [k6](https://k6.io/) | Load, stress, and performance testing under concurrency. | UTest verifies functional HTTP contracts sequentially. It does not generate load or report throughput for a remote service. |
+| Language test frameworks | Unit, component, and application integration tests close to source code. | UTest is language-independent and targets an already-running endpoint; it complements—not replaces—tests inside an application repository. |
+
+Choose UTest when you need a small checked-in suite to answer, “does this
+deployed API still satisfy the contract we rely on?” Choose `curl` or HTTPie
+when you need to investigate a request interactively, and choose a load tool
+when capacity is the question.
+
 ## Install
 
 Download the matching archive and `SHA256SUMS` from the
@@ -385,6 +419,9 @@ The release workflow runs CI, bounded parser/checker fuzzing, version
 validation, native smoke-tested builds, checksum generation, and GitHub Release
 publication.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup, required
+quality gates, documentation expectations, and pull-request process.
+
 ## Benchmark
 
 The following is a local baseline, measured on 11 August 2026
@@ -464,6 +501,7 @@ assertion complexity, remote service behavior, and reporting configuration.
 - [Changelog](release/CHANGELOG.md)
 - [Release process](release/RELEASE_PROCESS.md)
 - [Architecture notes](ARCHITECURE.md)
+- [Contributing guide](CONTRIBUTING.md)
 
 ## License
 
